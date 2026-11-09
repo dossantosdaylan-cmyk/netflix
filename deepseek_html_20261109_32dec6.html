@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Netflix</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Crect width='10' height='10' fill='%23141414'/%3E%3Cpath d='M3 1.5v7M7 1.5v7M3 1.5l4 7' stroke='%23e50914' stroke-width='1.4' fill='none'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#141414;--red:#e50914;--pad:4vw;--gap:.45rem;--per:7;--pt:4;--nav:4.2rem}
+@media(max-width:1400px){:root{--per:6}}
+@media(max-width:1100px){:root{--per:5;--pt:3}}
+@media(max-width:800px){:root{--per:4}}
+@media(max-width:600px){:root{--per:3;--pt:2;--nav:3.4rem}}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:clamp(13px,.78vw + 5px,24px);background:var(--bg);scrollbar-width:none}
+::-webkit-scrollbar{display:none}
+body{background:var(--bg);color:#e5e5e5;font-family:"Netflix Sans","Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;user-select:none}
+body.lock{overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+img{display:block}
+:focus{outline:0}
+[data-f]:focus-visible{outline:3px solid #fff;outline-offset:2px}
+svg{width:1.1rem;height:1.1rem;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+svg.fill{fill:currentColor;stroke:none}
+.screen{position:fixed;inset:0;display:none}.screen.on{display:flex}
+#app.on{display:block;position:static}
+.lw{--h:1.7rem;height:var(--h);display:flex;align-items:center}
+.lw img{height:100%;width:auto}
+.wm{font-family:'Bebas Neue',Impact,sans-serif;color:var(--red);font-size:calc(var(--h)*1.5);letter-spacing:.04em}
+#load{background:#000;z-index:999;align-items:center;justify-content:center}
+#load .lw{--h:9rem;animation:none}
+@keyframes zl{from{transform:scale(.8);opacity:0}50%{opacity:1}to{transform:scale(1)}}
+.spin{position:absolute;bottom:15vh;width:3rem;height:3rem;border:4px solid rgba(255,255,255,.15);border-left-color:var(--red);border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+#prof{background:var(--bg);flex-direction:column;align-items:center;justify-content:center;z-index:500}
+#prof .lw{--h:3rem;position:absolute;top:2rem;left:var(--pad)}
+#prof h1{font-size:clamp(1.8rem,3.5vw,3.4rem);font-weight:400;margin-bottom:2rem}
+.pg{display:flex;gap:2vw;flex-wrap:wrap;justify-content:center;margin-bottom:3rem}
+.pi{display:flex;flex-direction:column;align-items:center;width:10vw;min-width:5.5rem;max-width:11rem;color:grey}
+.av{width:100%;aspect-ratio:1;border-radius:.25rem;overflow:hidden;position:relative;display:grid;place-items:center;border:3px solid transparent;font-size:3rem;font-weight:700;color:#fff}
+.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pi span{margin-top:.8rem;font-size:1.1rem}
+.pi:hover,.pi:focus{color:#fff}.pi:hover .av,.pi:focus .av{border-color:#fff}
+.bm{border:1px solid grey;color:grey;padding:.6rem 1.6rem;letter-spacing:.15em;text-transform:uppercase;font-size:.9rem}
+.bm:hover,.bm:focus{color:#fff;border-color:#fff}
+.nav{position:fixed;top:0;left:0;right:0;height:var(--nav);z-index:100;display:flex;align-items:center;gap:1.6rem;padding:0 var(--pad);background:linear-gradient(180deg,rgba(0,0,0,.75),transparent);transition:background-color .4s}
+.nav.solid{background:var(--bg)}
+.nav .lw{--h:1.8rem;margin-right:.6rem}
+.nl{font-size:.82rem;padding:.4rem 0;white-space:nowrap}
+.nl:hover{color:#b3b3b3}.nl.on{color:#fff;font-weight:700}
+.nr{margin-left:auto;display:flex;align-items:center;gap:1.2rem}
+.sb{display:flex;align-items:center;gap:.4rem;border:1px solid transparent;padding:.3rem .4rem}
+.sb.open{border-color:#fff;background:rgba(0,0,0,.75)}
+.sb input{width:0;background:none;border:0;color:#fff;font:inherit;font-size:.85rem;transition:width .3s}
+.sb.open input{width:13rem}
+.hm{position:relative;padding:.9rem 0}
+.hm>button{display:flex;align-items:center;gap:.4rem}
+.hm .av{width:2rem;height:2rem;font-size:1rem;border:0;border-radius:.2rem}
+.mn{position:absolute;right:0;top:100%;min-width:12rem;background:rgba(0,0,0,.92);border:1px solid rgba(255,255,255,.15);display:none;padding:.4rem 0}
+.hm.open .mn{display:block}
+.mn button{display:flex;width:100%;align-items:center;gap:.7rem;padding:.55rem 1rem;font-size:.82rem;text-align:left}
+.mn button:hover,.mn button:focus{text-decoration:underline}
+.mn .av{width:1.8rem;height:1.8rem;font-size:.9rem}
+.mn hr{border:0;border-top:1px solid rgba(255,255,255,.2);margin:.4rem 0}
+.hero{position:relative;height:56.25vw;max-height:100vh;min-height:28rem;overflow:hidden;background:#1a1a1a}
+.hero-slides{position:absolute;inset:0;z-index:0}
+.hero-slide{position:absolute;inset:0;opacity:0;transition:opacity .8s ease}
+.hero-slide.on{opacity:1}
+.hero-slide img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block}
+.hero::before{content:"";position:absolute;inset:0;background:linear-gradient(77deg,rgba(0,0,0,.65),transparent 70%);z-index:1}
+.hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:16vw;background:linear-gradient(transparent,rgba(20,20,20,.7) 40%,var(--bg));z-index:1}
+.hi{position:absolute;z-index:2;left:var(--pad);bottom:35%;width:38%;min-width:17rem}
+.tag{display:flex;align-items:center;gap:.5rem;font-weight:700;letter-spacing:.3em;font-size:.8rem;color:#ccc}
+.tag b{font-family:'Bebas Neue',Impact,sans-serif;color:var(--red);font-size:1.8rem;letter-spacing:0;font-weight:400}
+.ht{font-family:'Bebas Neue',Impact,'Arial Narrow',sans-serif;font-weight:400;font-size:clamp(3rem,5.4vw,8rem);line-height:.92;letter-spacing:.02em;text-transform:uppercase;text-shadow:0 .2rem 1rem rgba(0,0,0,.6);margin:.2rem 0 .6rem}
+.rk{display:flex;align-items:center;gap:.6rem;font-size:1.2rem;font-weight:700;margin-bottom:.7rem}
+.t10{background:var(--red);border-radius:.2rem;width:1.6rem;height:1.6rem;display:grid;place-items:center;font-size:.42rem;font-weight:800;line-height:1;text-align:center;color:#fff}
+.hd{font-size:1.15rem;line-height:1.35;text-shadow:0 .1rem .4rem rgba(0,0,0,.7);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:1.1rem}
+.hb{display:flex;gap:.8rem}
+.b{display:flex;align-items:center;gap:.6rem;padding:.55rem 1.7rem .55rem 1.4rem;border-radius:.25rem;font-weight:700;font-size:1.1rem;transition:background .2s}
+.b svg{width:1.5rem;height:1.5rem}
+.b.w{background:#fff;color:#000}.b.w:hover{background:rgba(255,255,255,.75)}
+.b.g{background:rgba(109,109,110,.7);color:#fff}.b.g:hover{background:rgba(109,109,110,.4)}
+.hero-dots{position:absolute;z-index:4;bottom:1.5rem;left:50%;transform:translateX(-50%);display:flex;gap:.7rem;padding:.5rem .9rem;background:rgba(0,0,0,.35);border-radius:2rem;backdrop-filter:blur(4px)}
+.hd2{width:.75rem;height:.75rem;border-radius:50%;background:rgba(255,255,255,.35);border:0;padding:0;cursor:pointer;transition:background .25s,transform .25s;box-shadow:0 0 8px rgba(0,0,0,.6)}
+.hd2.on{background:#fff;transform:scale(1.3)}
+.hd2:hover{background:rgba(255,255,255,.7)}
+.ph{padding:calc(var(--nav) + 2rem) var(--pad) 1rem;font-size:2rem;font-weight:700}
+.rows{position:relative;z-index:3;padding-bottom:5rem}
+.hero+.rows{margin-top:-6vw}
+.row{margin-bottom:1.6rem;position:relative}
+.rt{font-size:1.2rem;font-weight:700;padding:0 var(--pad);margin-bottom:.6rem}
+.sl{position:relative}
+.tr{display:flex;gap:var(--gap);overflow-x:auto;padding:.4rem var(--pad);scrollbar-width:none;scroll-behavior:smooth}
+.ar{position:absolute;top:.4rem;bottom:.4rem;width:var(--pad);z-index:5;background:rgba(20,20,20,.5);display:none;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
+.ar svg{width:2rem;height:2rem}
+.ar.l{left:0}.ar.r{right:0}
+@media(hover:hover){.ar{display:flex}.sl:hover .ar{opacity:1}.ar:hover{background:rgba(20,20,20,.75)}}
+.tile{flex:0 0 auto;width:calc((100vw - 2*var(--pad) - (var(--per) - 1)*var(--gap))/var(--per));cursor:pointer;display:flex}
+.tile.top{width:calc((100vw - 2*var(--pad) - (var(--pt) - 1)*var(--gap))/var(--pt))}
+.art{position:relative;flex:1;aspect-ratio:2/3;border-radius:.3rem;overflow:hidden;background:#2a2a2a}
+.art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.art .fb{display:none;position:absolute;inset:0;padding:.6rem;align-items:flex-end;font-weight:700;background:linear-gradient(135deg,#3a3a3a,#1a1a1a)}
+.art.fail .fb{display:flex}
+.tile:focus-visible .art{box-shadow:0 0 0 3px #fff}
+.tile:focus-visible{outline:0}
+.top .art{flex:0 0 52%}
+.num{flex:0 0 48%;height:100%;margin-right:-.4rem;width:48%;stroke-width:4;overflow:visible}
+.num text{font-family:"Arial Black",Impact,sans-serif;font-weight:900;fill:#141414;stroke:#6d6d6d}
+.grid{display:grid;grid-template-columns:repeat(var(--per),1fr);gap:2.2rem var(--gap);padding:0 var(--pad) 5rem}
+.grid .tile{width:auto}
+.empty{padding:0 var(--pad);color:#8c8c8c;font-size:1.1rem}
+.pop{position:fixed;z-index:90;background:#181818;border-radius:.4rem;overflow:hidden;box-shadow:0 .3rem 1.6rem rgba(0,0,0,.8);opacity:0;transform:scale(.85);pointer-events:none;transition:transform .2s,opacity .2s}
+.pop.show{opacity:1;transform:none;pointer-events:auto}
+.pop .art{aspect-ratio:3/4;border-radius:0;flex:none}
+.pb{padding:.8rem 1rem 1rem}
+.ac{display:flex;gap:.45rem;align-items:center}.ac .sp{margin-left:auto}
+.cb{width:2.2rem;height:2.2rem;border-radius:50%;border:2px solid rgba(255,255,255,.5);background:rgba(42,42,42,.6);display:grid;place-items:center;flex:none}
+.cb:hover{border-color:#fff}.cb.w{background:#fff;border-color:#fff;color:#000}.cb.w:hover{background:#ddd}
+.cb svg{width:1rem;height:1rem}
+.mt{display:flex;align-items:center;gap:.5rem;font-size:.82rem;font-weight:600;margin:.7rem 0 .4rem;flex-wrap:wrap}
+.mc{color:#46d369;font-weight:700}
+.ag{border:1px solid rgba(255,255,255,.4);padding:0 .35rem;font-size:.72rem;color:#fff}
+.gn{font-size:.8rem;display:flex;flex-wrap:wrap;gap:.2rem .5rem;color:#fff}
+.gn i{font-style:normal;color:#646464}
+.bar-load{display:inline-block;width:0;height:3px;background:linear-gradient(90deg,#e50914,rgba(229,9,20,0.2));border-radius:2px;vertical-align:middle;animation:barLoad 2.5s ease-out forwards}
+@keyframes barLoad{0%{width:0;opacity:0}15%{opacity:1}70%{width:45px;opacity:1}100%{width:45px;opacity:0}}
+.md{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.72);overflow-y:auto;display:none}
+.md.on{display:block}
+.sh{position:relative;width:min(54rem,94vw);margin:2rem auto 4rem;background:#181818;border-radius:.6rem;overflow:hidden;box-shadow:0 .6rem 3rem #000;animation:si .3s}
+@keyframes si{from{transform:translateY(2rem);opacity:0}}
+.sv{position:relative;aspect-ratio:16/9;overflow:hidden;background:#222}
+.sv .bg{position:absolute;inset:-10%;width:120%;height:120%;object-fit:cover;filter:blur(24px) brightness(.55)}
+.sv .pst{position:absolute;right:8%;top:8%;height:84%;aspect-ratio:2/3;border-radius:.3rem;object-fit:cover;box-shadow:0 .4rem 2rem #000}
+.sv>.bd{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.sv::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 55%,#181818)}
+.sc{position:absolute;z-index:3;top:1rem;right:1rem;width:2.3rem;height:2.3rem;border-radius:50%;background:#181818;display:grid;place-items:center}
+.sx{position:absolute;z-index:2;left:2.5rem;bottom:1.6rem;right:45%}
+.sx .ht{font-size:clamp(2rem,4vw,4rem)}
+.sb2{display:grid;grid-template-columns:2fr 1fr;gap:2rem;padding:0 2.5rem 2.5rem}
+.sb2 p{font-size:.95rem;line-height:1.5;margin-top:.8rem}
+.sb2 small{display:block;font-size:.85rem;margin-bottom:.8rem;color:#777}.sb2 small span{color:#fff}
+@media(max-width:700px){.sb2{grid-template-columns:1fr}.sx{right:1rem;left:1rem}.sv .pst{display:none}}
+/* GRID DE TEMPORADAS */
+.seasons-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(11rem,1fr));gap:.8rem;margin:.5rem 0 1.5rem}
+.season-card{background:#2a2a2a;border-radius:.4rem;padding:1rem;cursor:pointer;display:flex;align-items:center;gap:.8rem;transition:background .2s,transform .2s,border-color .2s;border:2px solid transparent}
+.season-card:hover,.season-card:focus{background:#3a3a3a;border-color:var(--red);outline:none;transform:scale(1.02)}
+.season-num{font-family:'Bebas Neue',Impact,sans-serif;font-size:2.2rem;color:var(--red);line-height:1;min-width:2rem;text-align:center}
+.season-info{display:flex;flex-direction:column;gap:.15rem;overflow:hidden}
+.season-info b{font-size:.95rem;color:#fff}
+.season-info span{font-size:.72rem;color:#888}
+/* REPRODUCTOR */
+#play{background:#000;z-index:300}
+#play iframe{width:100%;height:100%;border:0}
+.pbk{position:absolute;top:1.4rem;left:1.4rem;z-index:5;display:flex;align-items:center;gap:.8rem;padding:.6rem 1.1rem;background:rgba(0,0,0,.7);border-radius:.3rem;font-weight:700;transition:opacity .4s}
+.pbk.hide{opacity:0}.pbk:hover,.pbk:focus{background:rgba(255,255,255,.2)}
+.next-ep{position:absolute;bottom:1.5rem;right:1.5rem;z-index:5;display:none;align-items:center;gap:.6rem;padding:.75rem 1.3rem;background:rgba(229,9,20,.95);color:#fff;border:0;border-radius:.3rem;font-weight:700;font-size:.95rem;cursor:pointer;font-family:inherit;opacity:0;transition:opacity .3s;box-shadow:0 .2rem 1rem rgba(0,0,0,.6)}
+.next-ep.show{display:flex;opacity:1}
+.next-ep:hover,.next-ep:focus{background:#ff0d1a;outline:2px solid #fff}
+.next-ep svg{width:1.1rem;height:1.1rem;fill:#fff;stroke:none}
+.av .fc{position:absolute;inset:0;width:100%;height:100%}
+.ed{position:absolute;inset:0;background:rgba(0,0,0,.55);display:grid;place-items:center;font-style:normal}.ed svg{width:2.4rem;height:2.4rem}
+.add .av{background:none;color:grey;border:0}.add .av svg{width:55%;height:55%;stroke-width:1.2}.add:hover .av,.add:focus .av{background:#e5e5e5;color:#141414}
+.hr{display:flex;align-items:center;gap:.8rem;background:none;border:0;padding:0;position:absolute;z-index:2;right:0;bottom:36%;padding-right:0}
+.hr span{background:rgba(51,51,51,.6);border-left:3px solid #dcdcdc;padding:.5rem 3.6vw .5rem .8rem;font-size:1.1rem}
+.mu{width:2.6rem;height:2.6rem;border-radius:50%;border:1px solid rgba(255,255,255,.7);display:grid;place-items:center;background:rgba(0,0,0,.25)}
+.mu:hover,.mu:focus{background:rgba(255,255,255,.15);border-color:#fff}
+.nt{min-width:23rem;max-height:70vh;overflow:auto}.mn.nt button{align-items:center}.nt small{color:#808080}
+.nth{width:6rem;aspect-ratio:16/9;object-fit:cover;border-radius:.2rem;flex:none;background:#333}
+.rt{display:flex;align-items:center}
+.ex{font-size:.8rem;color:#54b9c5;margin-left:1rem;opacity:0;transform:translateX(-.5rem);transition:.3s;display:flex;align-items:center;font-weight:700;cursor:pointer}
+.ex svg{width:.9rem;height:.9rem}.row:hover .ex{opacity:1;transform:none}
+.nb{position:absolute;top:.3rem;left:.45rem;font-family:'Bebas Neue',Impact,sans-serif;color:var(--red);font-size:1.5rem;line-height:1;text-shadow:0 0 .4rem rgba(0,0,0,.9)}
+.nw{position:absolute;left:50%;bottom:.45rem;transform:translateX(-50%);background:var(--red);color:#fff;font-size:.62rem;font-weight:700;padding:.15rem .45rem;border-radius:.15rem;white-space:nowrap}
+.prg{position:absolute;left:0;right:0;bottom:0;height:.25rem;background:#4d4d4d}.prg i{display:block;height:100%;background:var(--red)}
+.xt{padding:0 2.5rem 2.5rem}.xh{font-size:1.4rem;margin:1.6rem 0 .8rem}
+.ep{display:flex;align-items:center;gap:1.2rem;padding:1rem;border-radius:.3rem;background:#333;cursor:pointer}.ep:hover,.ep:focus{background:#444}
+.en{font-size:1.6rem;color:#d2d2d2;width:2rem;text-align:center}
+.et{position:relative;width:9rem;aspect-ratio:16/9;flex:none;border-radius:.3rem;overflow:hidden;background:#222}.et img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ei{flex:1}.ei div{display:flex;justify-content:space-between;gap:1rem}.ei p{font-size:.85rem;color:#d2d2d2;margin-top:.4rem;line-height:1.4}
+.sim{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}.sc2{background:#2f2f2f;border-radius:.3rem;overflow:hidden;cursor:pointer}.sc2:focus{outline:3px solid #fff}
+.sc2 .art{aspect-ratio:3/4;border-radius:0;flex:none}.cm{padding:.8rem}.cm b{display:block;font-size:.9rem}.cm span{color:#bcbcbc;font-size:.78rem}
+.cm p{font-size:.8rem;color:#d2d2d2;margin-top:.4rem;line-height:1.35;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ab{font-size:.9rem;line-height:1.9;color:#777}.ab span{color:#fff}
+.ft{padding:3rem var(--pad) 4rem;color:grey;max-width:70rem;margin:0 auto;font-size:.82rem}
+.fl{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem 1.5rem;margin:1.2rem 0}.fl a{cursor:pointer}.fl a:hover{text-decoration:underline}
+.sc3{border:1px solid grey;color:grey;padding:.5rem 1rem;margin:.5rem 0 1rem}.sc3:hover{color:#fff}
+@media(max-width:900px){.nl[data-v=nuevo],.nl[data-v=kids]{display:none}}
+@media(max-width:700px){.sim{grid-template-columns:repeat(2,1fr)}.xt{padding:0 1rem 1.5rem}.et{width:6rem}.fl{grid-template-columns:repeat(2,1fr)}.nt{min-width:16rem}}
+
+/* overlays: editor de perfil y PIN */
+.ov{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;overflow:auto;padding:1rem}.ov.on{display:flex}
+.bx{background:#181818;border-radius:.5rem;padding:2rem 2.4rem;width:min(34rem,94vw);box-shadow:0 .6rem 3rem #000;margin:auto}
+.bx h2{font-size:1.6rem;margin-bottom:1.2rem}
+.bx label{display:block;font-size:.85rem;color:#a3a3a3;margin:1rem 0 .4rem}
+.bx input{width:100%;background:#333;border:1px solid #555;color:#fff;font:inherit;font-size:1.05rem;padding:.7rem .9rem;border-radius:.25rem}
+.pv{display:flex;align-items:flex-end;gap:1.2rem}.pv .av{width:5rem;height:5rem;font-size:1rem}
+.swt{display:flex;gap:.6rem;flex-wrap:wrap}.swt button{width:2.6rem;height:2.6rem;border-radius:.25rem;border:3px solid transparent}.swt button.on{border-color:#fff}
+.row2{display:flex;gap:.8rem;margin-top:1.6rem;flex-wrap:wrap}
+.bt{padding:.7rem 1.6rem;border-radius:.25rem;font-weight:700;background:#333;color:#fff;font-size:1rem}.bt.p{background:#fff;color:#000}.bt.d{background:#9b1c24}
+.bt:hover,.bt:focus{filter:brightness(1.25)}
+.dots{display:flex;gap:1rem;justify-content:center;margin:1rem 0 1rem}.dots i{width:1.1rem;height:1.1rem;border-radius:50%;border:2px solid #888}.dots i.f{background:#fff;border-color:#fff}
+.kp{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem}.kp button{padding:1rem 0;background:#2a2a2a;border-radius:.3rem;font-size:1.4rem;font-weight:700}.kp button:hover,.kp button:focus{background:#444}.kp button[data-k=b],.kp button[data-k=x]{font-size:.95rem}
+.shake{animation:shk .35s}@keyframes shk{25%{transform:translateX(-.6rem)}75%{transform:translateX(.6rem)}}
+.msg{min-height:1.4rem;color:#e87c03;font-size:.9rem;margin-top:.6rem}
+/* historial */
+.hl{padding:0 var(--pad) 5rem;display:flex;flex-direction:column;gap:.8rem;max-width:62rem}
+.he{display:flex;align-items:center;gap:1.2rem;background:#222;border-radius:.4rem;padding:.8rem 1rem}
+.hth{width:4.2rem;flex:none}.hth .art{border-radius:.2rem}
+.hf{flex:1;min-width:0}.hf b{display:block;font-size:1.1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hf span{font-size:.85rem;color:#a3a3a3}
+/* modo reposo */
+#idle{position:fixed;inset:0;z-index:450;background:#000;display:none;overflow:hidden}#idle.on{display:block}
+.is{position:absolute;inset:0;opacity:0;filter:blur(16px);transition:opacity 1.1s ease,filter 1.1s ease}.is.on{opacity:1;filter:none}
+.is .bgb{position:absolute;inset:-6%;width:112%;height:112%;object-fit:cover;filter:blur(32px) brightness(.4)}
+.is .fgb{position:absolute;right:4vw;top:50%;transform:translateY(-50%);width:58vw;height:78vh;object-fit:contain;border-radius:.5rem;filter:drop-shadow(0 1rem 3rem #000)}
+.is .info{position:absolute;left:var(--pad);top:50%;transform:translateY(-50%);width:32vw;min-width:18rem;z-index:2}
+.is .mt{font-size:1rem;margin:.6rem 0}.is .gn{font-size:.95rem;margin-bottom:.8rem}
+.rb{display:inline-block;background:rgba(51,51,51,.7);border-left:3px solid var(--red);padding:.3rem .8rem;font-size:1.1rem;margin:.4rem 0}
+.is .hd{-webkit-line-clamp:5}
+.hint{position:absolute;z-index:3;bottom:1.4rem;left:50%;transform:translateX(-50%);font-size:.85rem;color:#9a9a9a}
+@media(max-width:800px){.is .fgb{left:4vw;right:auto;top:5vh;width:92vw;height:40vh;transform:none}.is .info{top:auto;bottom:7vh;transform:none;width:92vw}}
+/* barra de clasificación en el reproductor */
+.pinfo{position:absolute;z-index:6;top:5.4rem;left:1.4rem;max-width:min(40rem,82vw);background:rgba(0,0,0,.92);border-left:.35rem solid var(--red);padding:.9rem 1.4rem;opacity:0;transform:translateX(-1.2rem);transition:opacity .5s,transform .5s;pointer-events:none}
+.pinfo.show{opacity:1;transform:none}
+.pinfo .r1{display:flex;align-items:center;gap:.9rem;font-size:1.3rem;font-weight:700}.pinfo .ag{font-size:1.15rem;padding:.1rem .55rem}
+.pinfo p{font-size:1.05rem;margin-top:.45rem;color:#d2d2d2}.pinfo p b{color:#fff}
+</style>
+</head>
+<body>
+<div id="load" class="screen on"><div class="lw"></div><div class="spin"></div></div>
+<div id="prof" class="screen"><div class="lw"></div><h1>¿Quién está viendo ahora?</h1><div class="pg" id="pg"></div><button class="bm" data-f id="bm">Administrar perfiles</button></div>
+<div id="app" class="screen">
+  <nav class="nav" id="nav">
+    <div class="lw"></div>
+    <button class="nl on" data-f data-v="home">Inicio</button>
+    <button class="nl" data-f data-v="serie">Series</button>
+    <button class="nl" data-f data-v="pelicula">Películas</button>
+    <button class="nl" data-f data-v="lego">LEGO</button>
+    <button class="nl" data-f data-v="nuevo">Novedades populares</button>
+    <button class="nl" data-f data-v="lista">Mi lista</button>
+    <button class="nl" data-f data-v="hist">Historial</button>
+    <div class="nr">
+      <div class="sb" id="sb"><button data-f id="sbt" aria-label="Buscar"></button><input id="q" placeholder="Títulos, géneros" autocomplete="off"></div>
+      <button class="nl" data-f data-v="kids">Niños</button><div class="hm" id="bl"><button data-f id="blt" aria-label="Notificaciones"></button><div class="mn nt" id="nt"></div></div>
+      <div class="hm" id="hm"><button data-f id="hmt" aria-label="Perfil"></button><div class="mn" id="mn"></div></div>
+    </div>
+  </nav>
+  <main id="main"></main>
+</div>
+<div class="pop" id="pop"></div>
+<div class="ov" id="ov"></div>
+<div id="idle"></div>
+<div class="md" id="md"></div>
+<div class="screen" id="play">
+  <button class="pbk" data-f id="pbk"></button>
+  <div class="pinfo" id="pinfo"></div>
+  <iframe id="fr" allow="autoplay; fullscreen; encrypted-media" allowfullscreen></iframe>
+  <button class="next-ep" id="nextBtn" data-f aria-label="Siguiente episodio">
+    <svg viewBox="0 0 24 24"><path d="M5 4l10 8-10 8V4zm12 0h2v16h-2V4z"/></svg>
+    <span>Siguiente episodio</span>
+  </button>
+</div>
+
+<script>
+const LOGO='https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Netflix-Logo.png/960px-Netflix-Logo.png';
+const P=(d,c)=>`<svg class="${c||''}" viewBox="0 0 24 24">${d}</svg>`;
+const I={play:P('<path d="M7 4.5v15l13-7.5z"/>','fill'),plus:P('<path d="M12 5v14M5 12h14"/>'),check:P('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),
+ like:P('<path d="M7 11v9H4v-9zM7 11l4-8c1.6 0 2.5 1.2 2.2 2.7L12.6 9H19a2 2 0 0 1 2 2.3l-1.2 6.8a2 2 0 0 1-2 1.9H7"/>'),
+ down:P('<path d="M6 9l6 6 6-6"/>'),l:P('<path d="M15 5l-7 7 7 7"/>'),r:P('<path d="M9 5l7 7-7 7"/>'),x:P('<path d="M6 6l12 12M18 6L6 18"/>'),
+ search:P('<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/>'),back:P('<path d="M19 12H5M11 6l-6 6 6 6"/>'),
+ info:P('<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/>'),
+ mute:P('<path d="M4 9v6h4l5 4V5L8 9zM17 9l5 6M22 9l-5 6"/>'),vol:P('<path d="M4 9v6h4l5 4V5L8 9zM16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>'),
+ bell:P('<path d="M6 17v-6a6 6 0 0 1 12 0v6l2 2H4zM10 21a2 2 0 0 0 4 0"/>'),pen:P('<path d="M4 20l1-4L16 5l3 3L8 19zM14 7l3 3"/>')};
+const SIMPSONS_POSTER='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWjE0enHSLldR4RD3fXLK95GGfJgsmcMGZLhKg6jRPxTmxUlsaGmhqkHk&s=10';
+const SIMPSONS_SEASONS=[
+  {n:1,label:'Temporada 1',year:1989,mode:'full',duration:'13 episodios',embedUrl:'https://ok.ru/videoembed/15374595394286?nochat=1'},
+  {n:2,label:'Temporada 2',year:1990,mode:'full',duration:'22 episodios',embedUrl:'https://ok.ru/videoembed/15456175262446?nochat=1'},
+  {n:3,label:'Temporada 3',year:1991,mode:'full',duration:'24 episodios',embedUrl:'https://ok.ru/videoembed/15574291843822?nochat=1'},
+  {n:4,label:'Temporada 4',year:1992,mode:'full',duration:'22 episodios',embedUrl:'https://ok.ru/videoembed/15704565615342?nochat=1'},
+  {n:5,label:'Temporada 5',year:1993,mode:'full',duration:'22 episodios',embedUrl:'https://ok.ru/videoembed/15946076850926?nochat=1'},
+  {n:6,label:'Temporadas 6 y 7',year:1994,mode:'full',duration:'50 episodios',embedUrl:'https://ok.ru/videoembed/16224200887022?nochat=1'},
+  {n:8,label:'Temporada 8',year:1996,mode:'episodes',episodes:[
+    {n:1,url:'https://mega.nz/embed/CYhjCAwD#Cr8wjuid_yXxroRCqejxqcsew5INXJu9bgxEqohIZ_A'},
+    {n:2,url:'https://mega.nz/embed/CEpVCAwa#QZtsC3ydO5UuuH3TPgl_cDWiSmqHSMOejXLuzx3oenQ'},
+    {n:3,url:'https://mega.nz/embed/2V4nnaKK#seROFHbdrtriQCbOmCQ7TEFskd4hvgKyAIg_BnzlShk'},
+    {n:4,url:'https://mega.nz/embed/mRwDxQCb#OWS4LUOl65U6Nw2sZNxHo3TuJlZZnvpNYMpNg7zAKho'},
+    {n:5,url:'https://mega.nz/embed/LQxDzQrT#Ud34ujyouJsDl7Z6DhbnvQY_jWmIzl_lTYZ2wFWXBlE'},
+    {n:6,url:'https://mega.nz/embed/WIoXGQSB#XBmcuKiQs4Inrsw1yOuQ10oP_2C_vV7SKbdkFgMNFRs'},
+    {n:7,url:'https://mega.nz/embed/6BhhyQTC#CZOsdvwVS3A_3PJEqX2TFLFE4dGz-1WbRmVIMH1aAbY'},
+    {n:8,url:'https://mega.nz/embed/6R4hUIaL#eLhxNcEQNiRFx-e8ZrpAQdU9Mv0PCjEGlep6HYCv108'},
+    {n:9,url:'https://mega.nz/embed/vEoXBIZa#x7MLt0CEeOs1nQ3YE5FcvgFnIEhBYfaNUCl9EGFMMow'},
+    {n:10,url:'https://mega.nz/embed/TRg10I7J#9cqV2CRMGNyVXjUFqf8Aa5ddfXlzvte6oL9kJ67TRmE'},
+    {n:11,url:'https://mega.nz/embed/LMgDnSAZ#NF7uYnG99n2-Ev2XBy8zquKET8d6GE2kS-9OFOzzRLs'},
+    {n:12,url:'https://mega.nz/embed/jApzka4S#CcOZo6hkMdqVCSuy79MDR4KHyyAugt58vV3dK6pEqxc'},
+    {n:13,url:'https://mega.nz/embed/nUpTGKZR#u8QpYnTBVRHYorFy_CrvMiwj9_eZ_NZ3mUx652YfSjw'},
+    {n:14,url:'https://mega.nz/embed/XEgFwaLL#ITo36fCAdpIYnW-q6vpymS3l1m5v-qHw3IWtcsr9jVQ'},
+    {n:15,url:'https://mega.nz/embed/qVpXyI6Z#OpKzyvfyPwHNCIGod_NkCYpurGhZ7WRwZizCI0Kn2jU'},
+    {n:16,url:'https://mega.nz/embed/bAxxzQSC#cVqvrM9TKRuduDx7vyYB8K75AJlfJKaMNSYoE8aaNjQ'},
+    {n:17,url:'https://mega.nz/embed/aYgFVCLQ#POF2geOOOpGAO59AEgvUyEn0YrOJKZ7gH5kNam9aETU'},
+    {n:18,url:'https://mega.nz/embed/fB5x2SiY#5YmZOo3QjoaAMe2DdjLkw_w7Gs3UHsr7EpnmA4nfam8'},
+    {n:19,url:'https://mega.nz/embed/6ZwRTSoA#wu-qYZf5C1iwgWJkF40NNUiDHxIK0ig4UppYpOlnjDg'},
+    {n:20,url:'https://mega.nz/embed/3JwzVY7a#dgbb72lwg9zV9sed8nzmrmFkV68Bq6Rn40RxQxUrJuE'},
+    {n:21,url:'https://mega.nz/embed/iN51gKZK#HUDVLZDneQTuB4yHlVCFaGdp3lBCwuv0cq01IecCmqQ'},
+    {n:22,url:'https://mega.nz/embed/jMxRgCIR#KClqrwJaUtoxl6Xko2I0-X6y5OxKbivFupvFA3oo3OE'},
+    {n:23,url:'https://mega.nz/embed/zMgz1IqI#mIqEUFKJexfhy2XEhq2pGPgrKUoEa3J5XZgL8sa-PwI'},
+    {n:24,url:'https://mega.nz/embed/iUhTGCDC#LSdTRcftF2H0IX40ECmlJBB7vEJqASjmc_ZqxlRzjbk'},
+    {n:25,url:'https://mega.nz/embed/Gc5F2QZZ#UaVc8cZCuHbG0cs__FMDqtPAlDWEIphZexdcfzmtGIA'}
+  ]},
+  {n:9,label:'Temporada 9',year:1997,mode:'episodes',episodes:[
+    {n:1,url:'https://mega.nz/embed/eF4AzYSC#3bj6tJXOFnW4YgXEC91NqK7PbLMNZ-U7KpzmYc6_Gbk'},
+    {n:2,url:'https://mega.nz/embed/XY4iFaDA#80HKRFdyDBr-G3zCUOa8-kuskRRnCOUuIlxdg49PjpQ'},
+    {n:3,url:'https://mega.nz/embed/mB5A0SiK#AFkARJJ4BJaf5rELIa26AZT1jmPbhz3ZSNNx2hqPgtk'},
+    {n:4,url:'https://mega.nz/embed/bRhWwA7I#OHm1SOmmZw2Sy3_eMN7Q8IORgWgfgfc2DfDDM-72K4s'},
+    {n:5,url:'https://mega.nz/embed/2FwEEABC#NZjVnjewjLK3V07n5rasZmJdHKtQH2BK5J1TF9aBtRk'},
+    {n:6,url:'https://mega.nz/embed/OYoW3IDC#XMEfrFzu7HMeCZf4dNsmX-47uz3KYr5U82X09m0RTZI'},
+    {n:7,url:'https://mega.nz/embed/WYgwQCCZ#jr2ikOirRGU2ITIs5nhRSryAlKOEbrWTloxguhbr6d8'},
+    {n:8,url:'https://mega.nz/embed/2EoiHS6L#9s6vjs74AsjC4D6T8pkq9wPYRxoazo_Ee2fIJQGVBbM'},
+    {n:9,url:'https://mega.nz/embed/fNx01SaD#q8i6ErsOZiCeKOCy1dNyxD32bVBscAzlxEuPcdjJLCQ'},
+    {n:10,url:'https://mega.nz/embed/GBogRIKS#oy2_EDufdFkRwPdKKJbFPcEc6qbmlBEFvnF2iw6KxRc'},
+    {n:11,url:'https://mega.nz/embed/OYxkHACZ#LjXtIqM8dtJt7RYbwyvXe-FavAX-A4ylHokIScDI7Lo'},
+    {n:12,url:'https://mega.nz/embed/PEhAWKgb#b60eRqQRO4k0kQ0NEDN9Cr_bIcC_FQnEEpjLx__ouXU'},
+    {n:13,url:'https://mega.nz/embed/7RpQWIiL#AnboxrlwasQVAv5ygPvFolW2jptXMcRNXrNDuklfDtM'},
+    {n:14,url:'https://mega.nz/embed/nV5AhSqZ#gIaWNQVKiG2OwL0I0_yeV9AQOBV_IRH61HBd5lW0qjA'},
+    {n:15,url:'https://mega.nz/embed/zRpwiIzR#BsDjVnZF3Fd8rCcpwjspg4Q9pQdD72nC3dgn-PxCoY0'},
+    {n:16,url:'https://mega.nz/embed/6MpSSSZY#0n-SktgwLg8mIN0oAB6_xkEa1RMhmK34LlUKbCRNR28'},
+    {n:17,url:'https://mega.nz/embed/iQwiHCwK#bMFcUgkzoC7t0_rY_LxBLEVKe1196yUcFR6YpvKJbb8'},
+    {n:18,url:'https://mega.nz/embed/DQ4wHaRT#FPJwZVM2JgCnxfxpcjYfi6MViTn-3VKc9dhNlCQHVcA'},
+    {n:19,url:'https://mega.nz/embed/DV42WaCI#NIVYRAR6P6-AgAx6Ad5dTGkBJRi3c1iAiTL5traBXQE'},
+    {n:20,url:'https://mega.nz/embed/adxE1Ywa#x3W6M1Cy_jZUVXMdyYTrDYzkkNP3pWVm0ZUiJ6AwFB4'},
+    {n:21,url:'https://mega.nz/embed/6YoWmS7C#O6kguk9q4rPaP8hJqeZuwwMQrd00ipb_Ys2Xm4n6CC0'},
+    {n:22,url:'https://mega.nz/embed/bQoG0SiS#MoZVEaYXLHIWOWixj4xH-68SKgr-lGmvViDv26WYla0'},
+    {n:23,url:'https://mega.nz/embed/CFhEHIRS#GkNIgJlrFNP0nVXbyNIkts_xAJm6QtJOSVBh_DVvEdY'},
+    {n:24,url:'https://mega.nz/embed/OUwEEaCT#WExUWA8IraowVRX3gm9QZu4pBgeAxUnjeVi4Gt-VALk'},
+    {n:25,url:'https://mega.nz/embed/OJ5kRayJ#Nq5ly5SLHk8zCORwey3Lnxp4HUvF9CqswZCrqfrBCf4'}
+  ]},
+  {n:10,label:'Temporada 10',year:1998,mode:'episodes',episodes:[
+    {n:1,url:'https://mega.nz/embed/7BZniSaD#8jdOI-VywrbvtYvUxLdsCeq9K6ai7kODrOS5iU2no7A'},
+    {n:2,url:'https://mega.nz/embed/uMQjDC5A#f17doE2XsGNQsry-BuNnSvUY3RB21ak8Xt8-EkWf4Ek'},
+    {n:3,url:'https://mega.nz/embed/yIQhgYzY#ZhRKlPfQojRywU7K1nvgqoO3YDgPptuGLscz3ImD-u0'},
+    {n:4,url:'https://mega.nz/embed/TEBHGARb#jDl1tQdhmtyACCbOXEdcWdACkyPCwruJ1P4aHR6S6u4'},
+    {n:5,url:'https://mega.nz/embed/jdBTCSYD#Yz0TyPTf9psAR9g6ZyP372a_S98PtroFSPPEuigu9PY'},
+    {n:6,url:'https://mega.nz/embed/zZAxlAJb#jB8kRo1i24RE2UG4C6poXaxkJWsIHUYh5LvyMijbqwA'},
+    {n:7,url:'https://mega.nz/embed/3MYRRYxK#44GmY5yBJU_g2yFFmLdGfbfHUQLlX856idh0r7p_DrA'},
+    {n:8,url:'https://mega.nz/embed/PFZVTCpQ#VUTAyhj3uqBUowxthe8xFMMywaixnUzP5KA0fEwOOPU'},
+    {n:9,url:'https://mega.nz/embed/GQBhAS6K#2q0EH2CHFqJ0ua4_OqQXpC9PAqRtUOiLw6ONzpp37ZI'},
+    {n:10,url:'https://mega.nz/embed/aURlWKRA#lDnA5GePiPVB0X9WsDrtLVJfRnZtF-HXo1QWiR0bhqw'},
+    {n:11,url:'https://mega.nz/embed/6ERnUCAS#fpkxj00EEbNDkfAv353dqahFDOTzu5u3PuxEUj4yexU'},
+    {n:12,url:'https://mega.nz/embed/vdYRCA5A#eYTXBllZqYiP1WsdqGXOBfPA4SozpZ-Gl2K04gVQ6PA'},
+    {n:13,url:'https://mega.nz/embed/yQAFgCBS#vbv4QzL1Azr-omQQ1tBZqeBlkWtltgg5-SPxcwt8kzI'},
+    {n:14,url:'https://mega.nz/embed/ucJDXALb#5X9pedLUAUl97vhzcGC4X-we8EaSMTXluMxOXXhq_Nc'},
+    {n:15,url:'https://mega.nz/embed/6JZ1HSQB#nLc5_zOpeJIIPFU45YOFXHrxmJ1cGEmJQ3z-iDWLxQI'},
+    {n:16,url:'https://mega.nz/embed/yYBBCSgA#5WnBSndNQ41IlGlqgfDeZTWeqN715mKxYplNxMAgwws'},
+    {n:17,url:'https://mega.nz/embed/LRYTgIpI#4hN8NScHIS41eCGEV9GxayzLM7UwPY3w9XrvJ-8EzXA'},
+    {n:18,url:'https://mega.nz/embed/nJAhWQQJ#gxFOGICVnf1SSBWF0aoDb2lmPLft-L8zYFTAzamr26Y'},
+    {n:19,url:'https://mega.nz/embed/2IZxCQIZ#UZyoF_qadnRcnsq-J9Xv1vA75KmIYutIlgUyHavFtbw'},
+    {n:20,url:'https://mega.nz/embed/zcQTQY5J#eoLQHfTJ5tzSIcdO75qRKKg-sKnEwiaGFCeaLcSGLq8'},
+    {n:21,url:'https://mega.nz/embed/OVA3RCgZ#04Cl1CkMH2dm861S5bzTlsXOJ477Kz89TTNPEuHFCxM'},
+    {n:22,url:'https://mega.nz/embed/PQZj3CQC#qZJwAZTZzDbfXYABAtrlUdbcOto-9EfMzpL3E0vbB5A'},
+    {n:23,url:'LINK_DE_MEGA_AQUI'} // Treinta minutos sobre Tokio
+  ]}
+];
+
+const SMALLVILLE_SEASONS=[
+  {n:1,label:'Temporada 1',year:2001,mode:'full',duration:'21 episodios',embedUrl:'https://ok.ru/videoembed/14057793784558?nochat=1'},
+  {n:2,label:'Temporada 2',year:2002,mode:'full',duration:'23 episodios',embedUrl:'https://ok.ru/videoembed/15103908580078?nochat=1'},
+  {n:3,label:'Temporada 3',year:2003,mode:'full',duration:'22 episodios',embedUrl:'https://ok.ru/videoembed/15500152408814?nochat=1'},
+  {n:4,label:'Temporada 4',year:2004,mode:'full',duration:'22 episodios',embedUrl:'https://ok.ru/videoembed/15938239597294?nochat=1'},
+  {n:5,label:'Temporada 5',year:2005,mode:'full',duration:'22 episodios',embedUrl:'https://ok.ru/videoembed/16184141220590?nochat=1'}
+];
+
+const ITEMS=[
+{id:'st',type:'serie',title:'Stranger Things',year:2016,rating:'16+',duration:'5 temporadas',match:98,genres:['Ciencia ficción','Misterio','Terror'],
+ description:'Cuando un niño desaparece en un pequeño pueblo, sus amigos descubren un misterio que involucra experimentos secretos, fuerzas sobrenaturales y una niña muy extraña.',
+ poster:['https://image.tmdb.org/t/p/w342/49WJfeN0moxb9IPfGn8AIqMGskD.jpg','https://m.media-amazon.com/images/I/81DeWbxJTBL._AC_UF894,1000_QL80_.jpg'],
+ backdrop:['https://image.tmdb.org/t/p/original/56v2KjBlU4XaOv9rVYEQypROD7P.jpg','https://sm.ign.com/ign_br/screenshot/default/blob_d2sw.jpg'],
+ embedUrl:'https://ok.ru/videoembed/15905136577262?nochat=1', imdb:8.6},
+{id:'coy',type:'pelicula',title:'Coyote vs. Acme',year:2026,rating:'PG',duration:'1h 43min',match:94,genres:['Comedia','Familia','Animación'],
+ description:'Harto de que los productos Acme le fallen, el Coyote decide contratar a un abogado para demandar a la corporación.',
+ poster:['https://image.tmdb.org/t/p/w342/e4P8CIoffzsyjTm9e6U87Mng2CU.jpg'],embedUrl:'https://mega.nz/embed/FFllxQQL#nuRKzqUOomuSUwcRVCSuD3CchWomOFwkkXe0Iw_NjbQ', imdb:7.3},
+{id:'raz',type:'pelicula',title:'La Razón de Estar Contigo: Una Navidad Perfecta',year:2026,rating:'TV-14',duration:'99 min',match:91,genres:['Familia','Drama','Navidad'],
+ description:'Cuando una emergencia médica sacude a la familia Goss, su sabio perro Winstead decide hacer todo lo posible para mantenerlos unidos antes de la Nochebuena.',
+ poster:['https://image.tmdb.org/t/p/w342/eixA3LDfxqMKpz2L8uIM1kTIJ8g.jpg'],embedUrl:'https://mega.nz/embed/FRYz1AZS#5_qtPlACAXAIQZ2bAzjPaGJ8O3jquZG2pKCpp5K4ZQo', imdb:6.5},
+{id:'legoMovie',type:'pelicula',lego:true,title:'La Lego Película',year:2014,rating:'PG',duration:'1h 40min',match:96,genres:['Animación','Comedia','Aventura','Familia','LEGO'],
+ description:'Emmet, una minifigura LEGO ordinaria, es confundido con el "elegido" que salvará el universo LEGO de un malvado tirano.',
+ poster:['https://image.tmdb.org/t/p/w342/faKcUazMUagPhx9N3kKNaUCrES4.jpg'],
+ backdrop:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRjDIUgZ4rywtU4B4NHNnHv_wR6amoKuXdjACnRqoo8ackXRvD99GvqpugS&s=10'],
+ embedUrl:'https://mega.nz/embed/ay4GWQYZ#qhAJ1zfx2kDH4Ka5Bw0cBY4id8PzD0U6BWX6XrJXcyM', imdb:7.7},
+{id:'legoMarvel',type:'pelicula',lego:true,title:'LEGO Marvel Avengers: Código Rojo',year:2023,rating:'TV-PG',duration:'46 min',match:88,genres:['Animación','Acción','Familia','LEGO'],
+ description:'Los Vengadores se unen para salvar Nueva York, pero Black Widow discute con su padre, el Guardián Rojo, y éste desaparece misteriosamente.',
+ poster:['https://image.tmdb.org/t/p/w342/4ba3Kw9isyWvu6cupzUagm8ejw2.jpg'],
+ embedUrl:'https://mega.nz/embed/3rgF0bpC#kvhqZeOD2fpVvNG9ztlP95C0rMd8Yb80mEaK20fSuoI', imdb:6.2},
+{id:'stopMotionLegends',type:'serie',title:'Stop-Motion Legends',year:2013,rating:'TP',duration:'Serie completa',match:98,genres:['Acción','Animación','Stop-Motion','Superhéroes'],
+ description:'Spider-Man, Iron Man, Batman y más héroes de juguete cobran vida en esta épica saga de stop-motion sin diálogos. Todo el lore completo de Lozaus1, en orden.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRDZTZc6sOntWasYvwj3YYVClMhLrpqpAn0-j0awQqjKA&s=10'], 
+ embedUrl:'https://www.youtube.com/embed/videoseries?list=PLclsZGg7FL721QXg6VTRE7B7n8HTqfojM', imdb:null},
+{id:'jp1',type:'pelicula',title:'Jurassic Park',year:1993,rating:'13+',duration:'2h 7min',match:98,genres:['Acción','Ciencia ficción','Aventura','Jurassic'],
+ description:'Un multimillonario construye un parque temático con dinosaurios clonados, pero un fallo en la seguridad provoca que las criaturas escapen y aterroricen a los visitantes.',
+ poster:['https://vice-press.com/cdn/shop/products/Jurassic-Park-Editions-poster-florey.jpg?v=1654518755&width=1100','https://image.tmdb.org/t/p/w342/oUOA9vYwZk25S8o7a7jD1cP2F8x.jpg'],
+ embedUrl:'https://ok.ru/videoembed/11436013849268?nochat=1', imdb:8.2},
+{id:'jp2',type:'pelicula',title:'El Mundo Perdido: Jurassic Park',year:1997,rating:'13+',duration:'2h 9min',match:85,genres:['Acción','Ciencia ficción','Aventura','Jurassic'],
+ description:'Un grupo de expertos viaja a la Isla Sorna, el sitio de producción original de dinosaurios, para investigar y documentar las criaturas.',
+ poster:['https://image.tmdb.org/t/p/w342/uEPLOXmYgEU8GfF0246i4UrGmlI.jpg'],
+ embedUrl:'https://mega.nz/embed/0NA0zSRT#EPeqhREcJVZD_dNPI7HNSd8XvulPWQJo_LUIDnfNQLw', imdb:6.6},
+{id:'jp3',type:'pelicula',title:'Jurassic Park III',year:2001,rating:'13+',duration:'1h 32min',match:78,genres:['Acción','Ciencia ficción','Aventura','Jurassic'],
+ description:'Un paleontólogo y su esposa convencen a un experto en dinosaurios para que los lleve en un vuelo sobre la Isla Sorna, pero terminan estrellándose y deben sobrevivir.',
+ poster:['https://preview.redd.it/does-anyone-know-why-this-original-poster-for-jurassic-park-v0-nx58rg08ipfb1.jpg?width=1057&format=pjpg&auto=webp&s=5e23c69eea02d4f57cad5dbc4c21481958fd95c2','https://image.tmdb.org/t/p/w342/oUOA9vYwZk25S8o7a7jD1cP2F8x.jpg'],
+ embedUrl:'https://ok.ru/videoembed/4299383179903?nochat=1', imdb:5.9},
+{id:'jw1',type:'pelicula',title:'Jurassic World',year:2015,rating:'13+',duration:'2h 4min',match:92,genres:['Acción','Ciencia ficción','Aventura','Jurassic'],
+ description:'Veintidós años después de los eventos de Jurassic Park, un nuevo parque temático finalmente se abre al público, pero un dinosaurio modificado genéticamente escapa.',
+ poster:['https://image.tmdb.org/t/p/w342/sOgfattHPWE5sWdVCGHQ08GEbaP.jpg'],
+ embedUrl:'https://mega.nz/embed/q6Ig1RAB#EL2A9fa0q0zxWAtyEdqseLXKV8yDPCYfSteiMBG4zWs', imdb:6.9},
+{id:'jw2',type:'pelicula',title:'Jurassic World: El Reino Caído',year:2018,rating:'13+',duration:'2h 8min',match:86,genres:['Acción','Ciencia ficción','Aventura','Jurassic'],
+ description:'Cuando el volcán de Isla Nublar entra en erupción, Owen y Claire regresan para rescatar a los dinosaurios, pero descubren una conspiración.',
+ poster:['https://image.tmdb.org/t/p/w342/yHa2I7qxZvZUASLHrIR8vQLmZ4B.jpg'],
+ embedUrl:'https://mega.nz/embed/fjQQnRBJ#eoZopbc_674hsBpBP5F7jm5-OTZ_dZ8XW_qIQRR2Yhk', imdb:6.1},
+{id:'jw3',type:'pelicula',title:'Jurassic World: Dominion',year:2022,rating:'13+',duration:'2h 26min',match:88,genres:['Acción','Ciencia ficción','Aventura','Jurassic'],
+ description:'Cuatro años después de la destrucción de Isla Nublar, los dinosaurios viven —y cazan— junto a los humanos en todo el mundo.',
+ poster:['https://image.tmdb.org/t/p/w342/sXeWfpT1EhG7f4uBouqraOhmouH.jpg'],
+ embedUrl:'https://mega.nz/embed/49hiSTLI#kbM0JKEyhRGo1wXkg_GWYt1bsIxCkn1iRNGhkNdjFi0', imdb:5.6},
+{id:'jw4',type:'pelicula',title:'Jurassic World: El Renacer',year:2025,rating:'13+',duration:'2h 14min',match:90,genres:['Acción','Ciencia ficción','Aventura','Jurassic'],
+ description:'Cinco años después de los eventos de Dominion, un equipo de científicos se embarca en una peligrosa misión para obtener material genético de las criaturas más grandes del planeta.',
+ poster:['https://play-lh.googleusercontent.com/C-NoJBT8ZEZ0MJJ0XYiyG_ndIB6ML0j4Db1uAap3nBsLlQ6x8o7x8lC0hywKDDOQmj8aswcUUH1fEIjPqadc=w240-h480-rw','https://image.tmdb.org/t/p/w342/oUOA9vYwZk25S8o7a7jD1cP2F8x.jpg'],
+ embedUrl:'https://ok.ru/videoembed/15978670262830?nochat=1', imdb:6.0},
+{id:'lotr1',type:'pelicula',title:'El Señor de los Anillos: La Comunidad del Anillo',year:2001,rating:'13+',duration:'2h 58min',match:99,genres:['Fantasía','Aventura','Acción'],
+ description:'Un hobbit llamado Frodo hereda un anillo mágico y debe emprender un viaje para destruirlo en el Monte del Destino, acompañado por una comunidad de héroes.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSoVzekxyJ0XZoO2pIHztm4rhBxBBsZjbiMwrHF9_AZ0A&s=10'],
+ embedUrl:'https://ok.ru/videoembed/3757854493273?nochat=1', imdb:8.9},
+{id:'hp1',type:'pelicula',title:'Harry Potter y la Piedra Filosofal',year:2001,rating:'TP',duration:'2h 32min',match:97,genres:['Fantasía','Aventura','Familia'],
+ description:'Un niño huérfano descubre en su cumpleaños número 11 que es un mago y es invitado a asistir al Colegio Hogwarts de Magia y Hechicería.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlfKVx-u7fWSq_vXlKl4koamHBGWb2J9UZ0JSSsi0lNw&s=10'],
+ embedUrl:'https://ok.ru/videoembed/16137468513006?nochat=1', imdb:7.6},
+{id:'spiderman4',type:'pelicula',title:'Spider-Man: Brand New Day',year:2026,rating:'13+',duration:'2h 10min',match:95,genres:['Acción','Superhéroes','Ciencia ficción'],
+ description:'La cuarta entrega de la saga de Spider-Man en el MCU, donde Peter Parker debe enfrentar un nuevo comienzo tras los eventos de No Way Home.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9ENIbAqrjQKaUs_4YKAWvcFarAGriPTa6YEbO2-SNPZZjmzYwIfaXXA0&s=10'],
+ embedUrl:'https://ok.ru/videoembed/16437924006595?nochat=1', imdb:8.0},
+{id:'marioGalaxy2',type:'pelicula',title:'Super Mario Galaxy 2',year:2026,rating:'PG',duration:'1h 30min',match:95,genres:['Animación','Aventura','Familia'],
+ description:'Mario y sus amigos viajan al espacio para salvar el universo de una nueva amenaza. Una aventura galáctica llena de acción y diversión.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1x9JNtpUldoUBeA0_eL9N_n0WI4ASjdU-bA6kwlcf2Q&s=10'],
+ embedUrl:'https://ok.ru/videoembed/13991914769134?nochat=1', imdb:8.1},
+{id:'tintin',type:'pelicula',title:'Las Aventuras de Tintín',year:2011,rating:'TP',duration:'1h 47min',match:92,genres:['Animación','Aventura','Familia'],
+ description:'El intrépido periodista Tintín y su perro Milú se embarcan en una búsqueda del tesoro y descubren un misterio que involucra a un barco llamado Unicornio.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQMcltPclS9VCo45-wEgFalSbkI6cw0w-DNvFUGO9lBDw&s=10'],
+ embedUrl:'https://ok.ru/videoembed/14087343114990?nochat=1', imdb:7.3},
+{id:'kpop',type:'pelicula',title:'Las Guerreras Kpop',year:2025,rating:'13+',duration:'1h 35min',match:90,genres:['Animación','Acción','Musical'],
+ description:'Un grupo de chicas se convierte en superheroínas para salvar a sus fans y al mundo. Una mezcla de música, acción y animación.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQNsZVGnyIwIm9v0Jaf_eJhCl6emL_KG0opwyKSfSGC8A&s=10'],
+ embedUrl:'https://ok.ru/videoembed/12403799034606?nochat=1', imdb:7.0},
+{id:'chucky1',type:'pelicula',title:'Chucky: El Muñeco Diabólico',year:1988,rating:'18+',duration:'1h 27min',match:92,genres:['Terror','Suspenso','Slasher'],
+ description:'Un asesino en serie transfiere su alma a un muñeco "Good Guy" antes de morir, y el juguete termina en manos de un niño que no sospecha nada.',
+ poster:['https://http2.mlstatic.com/D_NQ_NP_897071-CBT107073945842_022026-O.webp'],
+ embedUrl:'https://ok.ru/videoembed/16358320507427?nochat=1', imdb:6.7},
+{id:'stripperella',type:'serie',title:'Stripperella - Temporada 1',year:2003,rating:'18+',duration:'13 episodios',match:88,genres:['Animación','Comedia','Adultos'],
+ description:'Una bailarina exótica se convierte en una superheroína secreta para luchar contra el crimen. Creada por Stan Lee, con un humor ácido y satírico.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvMiMFnJdO-fVLYBOKRodQq_32nExnlJJf9_JrPhezrw&s=10'],
+ embedUrl:'https://ok.ru/videoembed/15098717997806?nochat=1', imdb:6.1},
+{id:'rockRule',type:'pelicula',title:'Rock and Rule',year:1983,rating:'16+',duration:'1h 17min',match:80,genres:['Animación','Musical','Fantasía','Adultos'],
+ description:'En un mundo post-apocalíptico, una banda de rock intenta salvar a la humanidad de un dictador demoníaco.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwChZlbKcs8XkMxQdXs1YS82txCx3EUj6CO5PptiLk6Q&s=10'],
+ embedUrl:'https://ok.ru/videoembed/11981825706734?nochat=1', imdb:6.7},
+{id:'evilToons',type:'pelicula',title:'Evil Toons',year:1992,rating:'18+',duration:'1h 29min',match:70,genres:['Terror','Animación','Adultos'],
+ description:'Un dibujo animado demoníaco cobra vida para aterrorizar a un grupo de chicas en una casa de campo.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQeoQZo0pvNidGxhMVL-PpuDl9RplKj1suhw8yKQQtTaA&s=10'],
+ embedUrl:'https://ok.ru/videoembed/11433638759150?nochat=1', imdb:4.5},
+{id:'spicyCity',type:'serie',title:'Spicy City',year:1997,rating:'18+',duration:'6 episodios',match:82,genres:['Animación','Suspenso','Adultos'],
+ description:'Una antología de ciencia ficción cyberpunk para adultos creada por Ralph Bakshi.',
+ poster:['https://upload.wikimedia.org/wikipedia/en/7/72/SpicyCityX.jpg'],
+ embedUrl:'https://ok.ru/videoembed/11330227145454?nochat=1', imdb:7.5},
+{id:'smallville',type:'serie',title:'Smallville',year:2001,rating:'15+',duration:'5 temporadas',match:95,genres:['Acción','Ciencia ficción','Drama','Superhéroes','Adultos'],
+ description:'La historia de Clark Kent antes de convertirse en Superman. Un drama adolescente lleno de acción, misterio y superpoderes.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8iKmxbe4obZp9IbGUTuqbFQ8nV5PMLMQiPxyxjoRhQQ&s=10'],
+ seasons:SMALLVILLE_SEASONS, imdb:7.5},
+{id:'ben10',type:'serie',title:'Ben 10 (2005)',year:2005,rating:'TP',duration:'4 temporadas',match:92,genres:['Animación','Acción','Ciencia ficción','Familia'],
+ description:'Ben Tennyson, un niño de 10 años, encuentra un reloj alienígena que le permite transformarse en diferentes criaturas para luchar contra el mal.',
+ poster:['https://m.media-amazon.com/images/M/MV5BYWVjODZjNDgtYjk4ZS00OTg5LTg5NDQtZDMxZDQ4ZmM5MGJmXkEyXkFqcGc@._V1_.jpg'],
+ embedUrl:'https://ok.ru/videoembed/15862110554862?nochat=1', imdb:7.2},
+{id:'avengersEMH',type:'serie',title:'Los Vengadores: Los Héroes Más Poderosos del Universo',year:2010,rating:'TP',duration:'2 temporadas',match:96,genres:['Animación','Acción','Superhéroes'],
+ description:'Iron Man, Thor, Capitán América y Hulk se unen para formar a los Vengadores y enfrentar las amenazas más grandes de la Tierra.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMKzs1Hr7XVB9QmhgmQYQJRQ4B29yB1wSElsfEXtxMZQ&s=10'],
+ embedUrl:'https://ok.ru/videoembed/16110788479726?nochat=1', imdb:8.3},
+{id:'spiderWoman',type:'serie',title:'Spider-Woman: La Mujer Araña',year:1979,rating:'TP',duration:'1 temporada',match:80,genres:['Animación','Acción','Superhéroes'],
+ description:'Jessica Drew, también conocida como Spider-Woman, lucha contra el crimen con sus poderes arácnidos.',
+ poster:['https://m.media-amazon.com/images/M/MV5BMzc3NDk2NzctMzlhMy00NTY0LWJjMWEtZDQyZDBmZTAwOTEyXkEyXkFqcGc@._V1_.jpg'],
+ embedUrl:'https://ok.ru/videoembed/16138231745262?nochat=1', imdb:6.0},
+{id:'chavo',type:'serie',title:'El Chavo del 8',year:1972,rating:'TP',duration:'1 temporada',match:99,genres:['Comedia','Familia','Clásico'],
+ description:'Las aventuras del Chavo, un niño huérfano que vive en un barril en una vecindad, junto a sus amigos Quico, la Chilindrina y el Señor Barriga.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSgJujxxwXNkRXeJ3iiI4osBNykb4MeioeOLKdnqvH5SP9NG2rX3pmmsX5F&s=10'],
+ embedUrl:'https://ok.ru/videoembed/15905037880046?nochat=1', imdb:8.6},
+/* --- SERIES ANIMADAS CLÁSICAS --- */
+{id:'batmanTAS',type:'serie',title:'Batman: La Serie Animada',year:1992,rating:'TP',duration:'4 temporadas',match:99,genres:['Animación','Superhéroes','Clásico','Series Animadas'],
+ description:'La aclamada serie animada de Batman, con sus 4 temporadas completas en un solo video. Considerada una de las mejores adaptaciones del Caballero Oscuro.',
+ poster:['https://m.media-amazon.com/images/I/61VmSCQn0nL._AC_UF894,1000_QL80_.jpg'],
+ embedUrl:'https://ok.ru/videoembed/16149870676718?nochat=1', imdb:9.0},
+{id:'simpsons',type:'serie',title:'Los Simpsons',year:1989,rating:'13+',duration:'10 temporadas',match:99,
+ genres:['Animación','Comedia','Clásico','Series Animadas','Simpsons'],
+ description:'La familia más famosa de Springfield. Elegí una temporada para empezar a ver todos sus episodios.',
+ poster:[SIMPSONS_POSTER], seasons:SIMPSONS_SEASONS, imdb:8.7},
+{id:'casitaHorror',type:'serie',title:'La Casita del Horror',year:2022,rating:'16+',duration:'Serie completa',match:92,genres:['Animación','Terror','Comedia','Series Animadas'],
+ description:'Los especiales de Halloween de Los Simpsons, todos los capítulos juntos en un solo video.',
+ poster:['https://static.wikia.nocookie.net/doblaje/images/4/41/Casitadelhorror_serie.PNG/revision/latest?cb=20230310005717&path-prefix=es'],
+ embedUrl:'https://ok.ru/videoembed/16238313868014?nochat=1', imdb:null},
+{id:'johnnyBravo',type:'serie',title:'Johnny Bravo',year:1997,rating:'TP',duration:'4 temporadas',match:94,genres:['Animación','Comedia','Clásico','Series Animadas'],
+ description:'El musculoso y torpe Johnny Bravo en todas sus temporadas, todos los episodios juntos.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnY-26CFbVWPu0h5BDcUeWjN6wYolWORVByKZMCzDXCukIsnEzKTOlH4I&s=10'],
+ embedUrl:'https://ok.ru/videoembed/16147783158510?nochat=1', imdb:7.3},
+/* --- NUEVOS AGREGADOS --- */
+{id:'merlina',type:'serie',title:'Merlina',year:2022,rating:'13+',duration:'2 temporadas',match:97,genres:['Fantasía','Comedia','Misterio'],
+ description:'Merlina Addams investiga una ola de crímenes en la Academia Nunca Más.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQaAcDDy8mFdsFJC8trBOx1leQcUYoiZ5GuNtYcCFilwyuOcWFkl6Hi_uD7&s=10'],
+ backdrop:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQGLxmMCJ1WZ14D2F_fu7rU0v_IsYcxESo20IYJmI2Wvg&s=10'],
+ embedUrl:'https://ok.ru/videoembed/15940038167278?nochat=1', imdb:8.1},
+{id:'clarence',type:'serie',title:'Clarence',year:2014,rating:'TP',duration:'1 temporada',match:90,genres:['Animación','Comedia','Familia'],
+ description:'Clarence es un niño con una visión muy optimista del mundo. Sus aventuras junto a Jeff y Sumo.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSiHpVj6NH8CmLMjEKBsnW7v8K0pRVvBdpavh7JaugGTA&s=10'],
+ backdrop:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTt5AQ41RNzIUNU8pXZCqcool7NpT0wk8vJlvHSG2wkzxb387gUvaPF2eb4&s=10'],
+ embedUrl:'https://ok.ru/videoembed/15564097850094?nochat=1', imdb:6.6},
+{id:'unshowmas',type:'serie',title:'Un Show Más',year:2010,rating:'TP',duration:'1 temporada',match:95,genres:['Animación','Comedia'],
+ description:'Mordecai y Rigby, dos amigos que trabajan en un parque, se meten en todo tipo de problemas sobrenaturales.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTBvLEuZIAI8-PA0brTr-2kQCte00MlMJjB1rEDDC97vw&s=10'],
+ embedUrl:'https://ok.ru/videoembed/15470326975214?nochat=1', imdb:8.3},
+{id:'amongus',type:'serie',title:'Among Us',year:2021,rating:'TP',duration:'1 temporada',match:85,genres:['Animación','Comedia'],
+ description:'La tripulación de una nave espacial debe descubrir quién es el impostor entre ellos.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSKqhTMd0CYYDbPs3TPdWGvjt30-8zWdsTXmjg3Z2qCBw&s=10'],
+ embedUrl:'https://ok.ru/videoembed/14469645994734?nochat=1', imdb:6.5},
+{id:'documental_dinos',type:'documental',title:'Los Dinosaurios',year:2023,rating:'TP',duration:'Documental',match:94,genres:['Documental','Naturaleza'],
+ description:'Un viaje fascinante al pasado para descubrir cómo vivían y dominaban la Tierra los dinosaurios.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQfoblEeQuP4OVeq4OY9DM-D-yXdR3talIKWgDhIm7aMQ&s=10'],
+ embedUrl:'https://ok.ru/videoembed/13014305802990?nochat=1', imdb:8.5},
+{id:'redline',type:'pelicula',title:'Redline',year:2009,rating:'16+',duration:'1h 42min',match:91,genres:['Animación','Acción','Ciencia ficción'],
+ description:'Una carrera intergaláctica clandestina donde el ganador se lleva todo y el perdedor pierde la vida.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8S0I6EJdLUmGsqN432mTicc7Y2b4nUQzgjW3Q5JXyhw&s=10'],
+ embedUrl:'https://ok.ru/videoembed/10048209029870?nochat=1', imdb:7.4},
+{id:'heygoodlooking',type:'pelicula',title:'Hey Good Looking',year:2011,rating:'18+',duration:'1h 30min',match:82,genres:['Comedia','Drama','Adultos'],
+ description:'Tres amigos en la treintena luchan con sus vidas amorosas y profesionales en Nueva York.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSDYtT_VzjPUiUwOt8z3bB_AOup7IN1vR179dx5GJ7Er6Ks0gHe9c0eYZA&s=10'],
+ embedUrl:'https://ok.ru/videoembed/10113929120494?nochat=1', imdb:6.2},
+{id:'carrie',type:'serie',title:'Carrie',year:2024,rating:'18+',duration:'1 temporada',match:88,genres:['Terror','Drama','Adultos'],
+ description:'Una adaptación moderna de la clásica historia de Stephen King sobre una adolescente con poderes telequinéticos.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRTUpfboJz2dFZI92WQOzXjER8Se8U66-UhuDIKJ6KeDg&s=10'],
+ embedUrl:'https://ok.ru/videoembed/15882127805166?nochat=1', imdb:6.0},
+{id:'up',type:'pelicula',title:'Up: Una Aventura de Altura',year:2009,rating:'TP',duration:'1h 36min',match:98,genres:['Animación','Aventura','Familia'],
+ description:'Un anciano viudo y un explorador de 8 años se embarcan en una aventura en una casa flotante.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSAHyAD1IWnoROpA85Mu98NMHVW-EL2_X0aHJjwYlA32Q&s=10'],
+ embedUrl:'https://ok.ru/videoembed/16098826783470?nochat=1', imdb:8.3},
+{id:'heidipeli',type:'pelicula',title:'Heidi (Película)',year:2015,rating:'TP',duration:'1h 51min',match:90,genres:['Familia','Drama','Aventura'],
+ description:'La historia de la pequeña huérfana Heidi que vive con su abuelo en los Alpes suizos.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxmIlDrT1jFZgagTNVDYh_2-TtCILlBs_VqLQY-mjtPw&s=10'],
+ embedUrl:'https://ok.ru/videoembed/15635260508910?nochat=1', imdb:7.4},
+{id:'heidi1974',type:'serie',title:'Heidi (1974)',year:1974,rating:'TP',duration:'1 temporada',match:92,genres:['Animación','Familia','Clásico'],
+ description:'El clásico anime de los 70s sobre las aventuras de Heidi.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcShAY3hqTX_0LXsKbJu2h-K058UCWPMYeVjYv4Xx9KU9w&s=10'],
+ embedUrl:'https://ok.ru/videoembed/15904789039854?nochat=1', imdb:7.5},
+{id:'heidiremake',type:'serie',title:'Heidi (Remake)',year:2015,rating:'TP',duration:'1 temporada',match:88,genres:['Animación','Familia'],
+ description:'La versión moderna en 3D CGI de la clásica historia de Heidi.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTyxzp58zGQYTXH2SR-YlYnYn8GyRPuK21V3yljVCcfsg&s'],
+ embedUrl:'https://ok.ru/videoembed/15925143538414?nochat=1', imdb:7.0},
+{id:'zootopia2',type:'pelicula',title:'Zootopia 2',year:2025,rating:'TP',duration:'1h 40min',match:95,genres:['Animación','Comedia','Familia'],
+ description:'La secuela de Zootopia donde Judy Hopps y Nick Wilde vuelven a la acción.',
+ poster:['https://http2.mlstatic.com/D_NQ_NP_666464-MLB98925196898_112025-O.webp'],
+ embedUrl:'https://ok.ru/videoembed/15555081013998?nochat=1', imdb:7.5},
+{id:'ratchet',type:'pelicula',title:'Ratchet & Clank',year:2016,rating:'TP',duration:'1h 34min',match:80,genres:['Animación','Aventura','Ciencia ficción','Familia'],
+ description:'Dos héroes inadaptados deben unirse para salvar la galaxia.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgvF2gSKBUxxfShfM1GAvgLyz6uFNLtRdYIK9zxnZKrZPYNTEg6jgmEAxA&s=10'],
+ embedUrl:'https://ok.ru/videoembed/7144387578493?nochat=1', imdb:5.5},
+{id:'sharkboy',type:'pelicula',title:'Las Aventuras de Sharkboy y Lavagirl',year:2005,rating:'TP',duration:'1h 32min',match:75,genres:['Aventura','Familia','Fantasía'],
+ description:'Un niño con una imaginación desbordante viaja al planeta de sus héroes favoritos.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTPBySXnY4KLsXGNlF-np4OJwfh40ItI5IkNfLExedwjw&s=10'],
+ embedUrl:'https://ok.ru/videoembed/15328891308782?nochat=1', imdb:3.8},
+{id:'miniespias',type:'pelicula',title:'Mini Espías',year:2001,rating:'TP',duration:'1h 28min',match:85,genres:['Aventura','Comedia','Familia'],
+ description:'Dos hermanos deben rescatar a sus padres, que son espías internacionales.',
+ poster:['https://m.media-amazon.com/images/I/41zIBIkHfNL._AC_UF894,1000_QL80_.jpg'],
+ embedUrl:'https://ok.ru/videoembed/15332143860462?nochat=1', imdb:5.6},
+{id:'miniespias2',type:'pelicula',title:'Mini Espías 2',year:2002,rating:'TP',duration:'1h 40min',match:80,genres:['Aventura','Comedia','Familia'],
+ description:'Los hermanos Cortez vuelven a la acción para detener a un villano.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsPa8NUQTbsSQ8iA-husU-B-BC3TRm097Cu2XhRYHe4w&s=10'],
+ embedUrl:'https://ok.ru/videoembed/15335657376494?nochat=1', imdb:5.1},
+{id:'zootopia1',type:'pelicula',title:'Zootopia',year:2016,rating:'TP',duration:'1h 48min',match:97,genres:['Animación','Comedia','Familia'],
+ description:'En una ciudad de mamíferos antropomórficos, una coneja policía y un zorro estafador unen fuerzas.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS8dfVs8fOJ0CAqjkH0qAf2QSM9diT4krtpnLYfruVcFw&s=10'],
+ embedUrl:'https://ok.ru/videoembed/10988516936430?nochat=1', imdb:8.0},
+{id:'guardianes',type:'serie',title:'Guardianes de la Justicia',year:2001,rating:'TP',duration:'1 temporada',match:92,genres:['Animación','Acción','Superhéroes'],
+ description:'La Liga de la Justicia se une para combatir el crimen y amenazas alienígenas.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-ckv1Qh7tuOgMg-UEavvcY6iBd__CPAHZJ6PcQhC-yw&s=10'],
+ embedUrl:'https://ok.ru/videoembed/15252720388846?nochat=1', imdb:8.6},
+{id:'loveDeath',type:'serie',title:'Love, Death & Robots',year:2019,rating:'18+',duration:'1 temporada',match:96,genres:['Animación','Ciencia ficción','Adultos'],
+ description:'Una antología de cortos animados sobre criaturas extrañas, inteligencias artificiales y realidades alternativas.',
+ poster:['https://br.web.img3.acsta.net/pictures/19/02/15/09/54/4975550.jpg'],
+ embedUrl:'https://ok.ru/videoembed/14763324803822?nochat=1', imdb:8.4},
+/* --- NUEVOS AGREGADOS (56 DIAS, BARAJA, ETC) --- */
+{id:'56dias',type:'serie',title:'56 Días (Temporada 1)',year:2023,rating:'18+',duration:'1 temporada',match:89,genres:['Drama','Erótico','Adultos'],
+ description:'Una serie intensa que explora relaciones complejas y escenas explícitas.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSmYEJYpxWq4RaXN72ShpIUM6PqW9FxPe2wip-bDDOPzvL6yT0cC36Riqqc&s=10'],
+ embedUrl:'https://ok.ru/videoembed/11793392405121?nochat=1', imdb:6.0},
+{id:'baraja',type:'pelicula',title:'Baraja: La Firma del Asesino',year:2023,rating:'16+',duration:'1h 45min',match:85,genres:['Suspenso','Crimen','Acción'],
+ description:'Un asesino a sueldo con una baraja de cartas como firma se enfrenta a su último trabajo.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRE3wPvQTPIlsI4MYOam55s9Dc0f-0d6FHH7RT3BJvkjA&s=10'],
+ embedUrl:'https://ok.ru/videoembed/16859512244865?nochat=1', imdb:6.5},
+{id:'residentevil2026',type:'pelicula',title:'Resident Evil (2026)',year:2026,rating:'18+',duration:'2h 10min',match:92,genres:['Terror','Acción','Ciencia ficción'],
+ description:'Nueva entrega de la icónica saga de terror y zombis de Capcom.',
+ poster:['https://acdn-us.mitiendanube.com/stores/004/687/740/products/pos-04900-6765da5699b308115017858660726481-1024-1024.webp'],
+ embedUrl:'https://ok.ru/videoembed/17483979557505?nochat=1', imdb:7.0},
+{id:'drivefarsantes',type:'pelicula',title:'Drive: Los Farsantes',year:2024,rating:'16+',duration:'1h 35min',match:82,genres:['Acción','Suspenso','Crimen'],
+ description:'Un grupo de estafadores se embarca en un peligroso atraco.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSY5HrMHRn2wZuk6-sSqs3p3OgPvLMwpDXeK0Ttab_Qrg&s=10'],
+ embedUrl:'https://ok.ru/videoembed/17447748176513?nochat=1', imdb:6.0},
+{id:'unanoche',type:'pelicula',title:'Una Noche al Año',year:2022,rating:'16+',duration:'1h 40min',match:84,genres:['Romance','Drama'],
+ description:'Dos personas que solo se ven una noche al año y su compleja relación con el paso del tiempo.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTDckOur9ZjT63_e8LpZN3zY_OikJiNYLIwkIwwclMiBx4bqGj08zZ0A76e&s=10'],
+ embedUrl:'https://ok.ru/videoembed/17173181368961?nochat=1', imdb:6.2},
+{id:'sunrise',type:'pelicula',title:'Sunrise: El Último Amanecer',year:2024,rating:'16+',duration:'2h 0min',match:88,genres:['Acción','Ciencia ficción','Aventura'],
+ description:'En un futuro distópico, un grupo de supervivientes busca un nuevo hogar antes de que el sol se apague.',
+ poster:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCnah7QUuF_RtQDiDqzp5gW0uZ2JNfSSLZQvk9a9kIaA&s=10'],
+ embedUrl:'https://ok.ru/videoembed/16661428439681?nochat=1', imdb:7.1},
+/* --- ANIME --- */
+{id:'usagichan',type:'serie',title:'Usagi-chan de Cue!!',year:2001,rating:'18+',duration:'1 temporada',match:85,genres:['Anime','Comedia','Ecchi','Adultos'],
+ description:'Una comedia de anime con un tono subido de tono, donde un chico se ve envuelto en situaciones hilarantes con chicas con orejas de conejo.',
+ poster:['https://media.themoviedb.org/t/p/w500/zN0UaYNe0kdUj2nle2eLxlYYGtE.jpg'],
+ embedUrl:'https://ok.ru/videoembed/1465769526780?nochat=1', imdb:6.5}
+];
+
+const HERO_IDS=['st','legoMovie', 'merlina'];
+const PROFILES=[
+{name:'Dario',c:['#E50914','#8B0000'],img:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS688RMeyfrILnFzyOqxPcBSfYLr63sGANVnm42slKO-ioeTpzqiveI8hQ&s=10'},
+{name:'Mariela',c:['#FF6B6B','#C0392B'],img:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcToaH04Ke-nctXAp7SwaM4ktGJgRcfqQiSwuVuDGLTBPg&s=10'},
+{name:'Dylan',c:['#4ECDC4','#16A085'],img:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT3ql7A2eGWgBBdMs9oQevAkFuoflHCCAx0AcQ2v3vOUA&s=10'},
+{name:'Yuli y Natha',c:['#FFE66D','#F39C12'],img:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSFDHP3cARoKJOWlfgN5-48as3IiQgG3clWnnjxygHLRZKszOWo0iPlJRQQ&s=10'}];
+PROFILES.forEach((p,i)=>p.id=i);
+try{const sv=JSON.parse(localStorage.getItem('nf:profiles'));if(Array.isArray(sv)&&sv.length)PROFILES.splice(0,PROFILES.length,...sv)}catch(e){}
+const saveP=()=>{try{localStorage.setItem('nf:profiles',JSON.stringify(PROFILES))}catch(e){}};
+const COLORS=[['#3b82f6','#1e3a8a'],['#a855f7','#6b21a8'],['#22c55e','#166534'],['#f97316','#9a3412']];
+const esc=s=>s.replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+const FACE='<svg class="fc" viewBox="0 0 100 100"><rect x="27" y="30" width="9" height="15" rx="2" fill="#141414"/><rect x="64" y="30" width="9" height="15" rx="2" fill="#141414"/><path d="M26 62q24 22 48 0" fill="none" stroke="#141414" stroke-width="7" stroke-linecap="round"/></svg>';
+function foot(){return el(`<footer class="ft"><p>¿Preguntas? Contáctanos.</p><div class="fl">${['Preguntas frecuentes','Centro de ayuda','Cuenta','Prensa','Relaciones con inversionistas','Empleo','Formas de ver','Condiciones de uso','Privacidad','Preferencias de cookies','Información corporativa','Contáctanos','Prueba de velocidad','Avisos legales','Solo en Netflix'].map(x=>`<a>${x}</a>`).join('')}</div><button class="sc3">Código de servicio</button><p>© 1997-2026 Netflix, Inc.</p></footer>`)}
+function extras(i,box){
+  let h='';
+  const o=ITEMS.filter(x=>x!==i);
+  if(i.seasons){
+    h+='<h3 class="xh">Elegí una temporada</h3><div class="seasons-grid"></div>';
+  } else if(i.type==='serie'){
+    h+=`<h3 class="xh">Episodios</h3><div class="ep" data-f tabindex="0" role="button"><span class="en">1</span><div class="et"></div><div class="ei"><div><b>Episodio 1</b><span>${i.duration}</span></div><p>${i.description}</p></div></div>`;
+  }
+  if(o.length)h+='<h3 class="xh">Más títulos similares</h3><div class="sim"></div>';
+  h+=`<h3 class="xh">Acerca de <b>${i.title}</b></h3><p class="ab">Géneros: <span>${i.genres.join(', ')}</span><br>Año: <span>${i.year}</span><br>Clasificación por edad: <span>${i.rating}</span></p>`;
+  box.innerHTML=h;
+  if(i.seasons){
+    const sg=box.querySelector('.seasons-grid');
+    i.seasons.forEach(s=>{
+      const card=el(`<div class="season-card" data-f tabindex="0" role="button">
+        <div class="season-num">${s.n}</div>
+        <div class="season-info">
+          <b>${s.label}</b>
+          <span>${s.duration||s.episodes.length+' episodios'}</span>
+          <span>${s.year}</span>
+        </div>
+      </div>`);
+      card.onclick=()=>playSeason(i,s);
+      card.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();playSeason(i,s)}};
+      sg.appendChild(card);
+    });
+  } else if(i.type==='serie'){
+    const ep=box.querySelector('.ep');
+    if(ep){ep.querySelector('.et').append(img(i.backdrop||i.poster,'',1));ep.onclick=()=>play(i);ep.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();play(i)}}}
+  }
+  const sm=box.querySelector('.sim');
+  if(sm)o.forEach(x=>{const c=el(`<div class="sc2" data-f tabindex="0" role="button"><div class="ci"></div><div class="cm"><b>${x.title}</b><span>${x.duration}</span><p>${x.description}</p></div></div>`);
+   c.querySelector('.ci').append(art(x));c.onclick=()=>{openMd(x)};c.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();openMd(x)}};sm.append(c)});
+}
+const H=()=>store.g('hist',[]).map(x=>typeof x==='string'?{id:x,at:0}:x).filter(x=>byId(x.id));
+function rec(i,sn,ep){const h=H().filter(x=>x.id!==i.id);h.unshift({id:i.id,at:Date.now(),s:sn||null,e:ep||null});store.s('hist',h.slice(0,50))}
+function ago(t){if(!t)return'';const m=Math.floor((Date.now()-t)/6e4);return m<1?'hace un momento':m<60?'hace '+m+' min':m<1440?'hace '+Math.floor(m/60)+' h':'hace '+Math.floor(m/1440)+' d'}
+const CL={'TP':'Apta para todo público','PG':'Se recomienda guía de los padres','TV-PG':'Se recomienda guía de los padres','PG-13':'No recomendada para menores de 13 años','13+':'No recomendada para menores de 13 años','TV-14':'No recomendada para menores de 14 años','15+':'No recomendada para menores de 15 años','16+':'No recomendada para menores de 16 años','18+':'Solo para adultos'};
+const CT={'Terror':'terror','Acción':'violencia','Adultos':'contenido para adultos','Suspenso':'suspenso','Slasher':'violencia gráfica','Drama':'temas dramáticos'};
+let infoT;
+function showInfo(i){const c=[...new Set(i.genres.map(g=>CT[g]).filter(Boolean))];if(i.rating==='18+'&&!c.includes('contenido para adultos'))c.push('contenido para adultos');
+ const pi=$('#pinfo');pi.innerHTML=`<div class="r1"><span class="ag">${i.rating}</span><span>${CL[i.rating]||''}</span></div>${c.length?`<p>Contiene: <b>${c.join(', ')}</b></p>`:(i.rating==='TP'?'<p>Sin advertencias de contenido</p>':'')}`;
+ pi.classList.add('show');clearTimeout(infoT);infoT=setTimeout(()=>pi.classList.remove('show'),9000)}
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const byId=id=>ITEMS.find(i=>i.id===id);
+let manage=false,profile=PROFILES[0],view='home',prevView='home',lastIn='mouse',lastFocus=null;
+let currentPlay=null;
+const store={g(k,d){try{return JSON.parse(localStorage.getItem('nf:'+profile.id+':'+k))||d}catch(e){return d}},s(k,v){try{localStorage.setItem('nf:'+profile.id+':'+k,JSON.stringify(v))}catch(e){}}};
+const inList=i=>store.g('list',[]).includes(i.id);
+function toggleList(i){let l=store.g('list',[]);l=l.includes(i.id)?l.filter(x=>x!==i.id):[...l,i.id];store.s('list',l)}
+function logo(box){box.innerHTML=`<img src="${LOGO}" alt="Netflix">`;box.firstChild.onerror=function(){box.innerHTML='<span class="wm">NETFLIX</span>'}}
+function img(srcs,alt,eager){const l=[].concat(srcs||[]),m=new Image();let n=0;m.alt=alt;m.draggable=false;m.referrerPolicy='no-referrer';if(!eager)m.loading='lazy';
+ m.onerror=()=>{if(++n<l.length)m.src=l[n];else{m.remove();(m._p||{classList:{add(){}}}).classList.add('fail')}};if(l.length)m.src=l[0];return m}
+function art(i,cls){const a=document.createElement('div');a.className='art '+(cls||'');a.innerHTML=`<span class="fb">${i.title}</span>`;const m=img(i.poster,i.title);m._p=a;a.prepend(m);return a}
+function avatar(p,cls,x){return `<div class="av ${cls||''}" style="background:linear-gradient(135deg,${p.c[0]},${p.c[1]})">${FACE}${p.img?`<img src="${p.img}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:''}${x||''}</div>`}
+function el(h){const t=document.createElement('template');t.innerHTML=h.trim();return t.content.firstChild}
+function screen(id){$$('.screen:not(#play)').forEach(s=>s.classList.toggle('on',s.id===id))}
+function renderProfiles(){const g=$('#pg');g.innerHTML='';
+ PROFILES.forEach(p=>{const b=document.createElement('button');b.className='pi';b.dataset.f=1;b.innerHTML=avatar(p,'',manage?`<i class="ed">${I.pen}</i>`:'')+`<span>${esc(p.name)}</span>`;
+  b.onclick=()=>manage?editP(p):enter(p);g.appendChild(b)});
+ if(PROFILES.length<5){const a=document.createElement('button');a.className='pi add';a.dataset.f=1;a.innerHTML=`<div class="av">${I.plus}</div><span>Agregar perfil</span>`;a.onclick=()=>editP();g.appendChild(a)}
+ $('#bm').textContent=manage?'Listo':'Administrar perfiles';$('#prof h1').textContent=manage?'Administrar perfiles:':'¿Quién está viendo ahora?'}
+function buildMenu(){const p=profile;$('#hmt').innerHTML=avatar(p)+I.down;
+ $('#mn').innerHTML=PROFILES.filter(x=>x!==p).map(x=>`<button data-f data-p="${PROFILES.indexOf(x)}">${avatar(x)}${esc(x.name)}</button>`).join('')+'<button data-f id="sw">Administrar perfiles</button><button data-f id="cf">Configuración</button><button data-f>Cuenta</button><button data-f>Centro de ayuda</button><hr><button data-f id="so">Cerrar sesión de Netflix</button>';
+ $$('#mn [data-p]').forEach(b=>b.onclick=()=>{closeMenu();enter(PROFILES[b.dataset.p])});
+ $('#sw').onclick=()=>{closeMenu();manage=true;renderProfiles();screen('prof');focusFirst($('#prof'))};
+ $('#cf').onclick=()=>{closeMenu();editP(profile)};
+ $('#so').onclick=()=>{closeMenu();manage=false;renderProfiles();screen('prof');focusFirst($('#prof'))}}
+function enter(p,ok){if(p.pin&&!ok){askPin(p,()=>enter(p,true));return}
+ manage=false;profile=p;buildMenu();screen('load');
+ setTimeout(()=>{screen('app');go('home');focusFirst($('#app'));act()},1800)}
+/* editor de perfil (nombre, color, PIN, reposo, eliminar) */
+const ov=$('#ov');let ovFocus=null;
+const SW=[['#E50914','#8B0000'],['#FF6B6B','#C0392B'],['#4ECDC4','#16A085'],['#FFE66D','#F39C12'],['#3b82f6','#1e3a8a'],['#a855f7','#6b21a8'],['#22c55e','#166534'],['#f97316','#9a3412']];
+const IDLEOPT=[1,2,3,5,10,0],idlTxt=m=>m?m+' min':'Nunca';
+function openOv(){ovFocus=document.activeElement;ov.classList.add('on');focusFirst(ov)}
+function closeOv(){ov.classList.remove('on');ov._press=null;ov.onclick=null;ov.innerHTML='';if(ovFocus&&document.contains(ovFocus))ovFocus.focus({preventScroll:true});else focusFirst($('#prof').classList.contains('on')?$('#prof'):$('#app'))}
+function editP(p){const nw=!p,d=p?{...p,c:[...p.c]}:{id:Date.now(),name:'',c:SW[PROFILES.length%SW.length],img:'',pin:'',idle:2};if(d.idle===undefined)d.idle=2;
+ ov.innerHTML=`<div class="bx"><h2>${nw?'Agregar perfil':'Editar perfil'}</h2><div class="pv"><div id="pva"></div><div style="flex:1"><label style="margin:0 0 .4rem">Nombre</label><input data-f id="pn" maxlength="14" value="${esc(d.name)}"></div></div>
+ <label>Color del avatar</label><div class="swt" id="psw"></div>
+ <label>PIN de 4 dígitos (vacío = sin PIN)</label><input data-f id="pp" type="password" inputmode="numeric" maxlength="4" value="${esc(d.pin||'')}">
+ <label>Entrar en reposo (banners) tras</label><button class="bt" data-f id="pi">${idlTxt(d.idle)}</button>
+ <p class="msg" id="pm"></p><div class="row2"><button class="bt p" data-f id="ps">Guardar</button><button class="bt" data-f id="pc">Cancelar</button>${!nw&&PROFILES.length>1?'<button class="bt d" data-f id="pd">Eliminar perfil</button>':''}</div></div>`;
+ const pv=()=>$('#pva').innerHTML=avatar(d);pv();
+ SW.forEach(c=>{const b=el(`<button data-f style="background:linear-gradient(135deg,${c[0]},${c[1]})" aria-label="Color"></button>`);b.classList.toggle('on',!d.img&&d.c[0]===c[0]);
+  b.onclick=()=>{d.c=c;d.img='';$$('#psw button').forEach(x=>x.classList.remove('on'));b.classList.add('on');pv()};$('#psw').append(b)});
+ $('#pi').onclick=()=>{d.idle=IDLEOPT[(IDLEOPT.indexOf(d.idle)+1)%IDLEOPT.length];$('#pi').textContent=idlTxt(d.idle)};
+ $('#pc').onclick=closeOv;
+ $('#ps').onclick=()=>{const n=esc($('#pn').value.trim()),pin=$('#pp').value.trim();
+  if(!n){$('#pm').textContent='Escribe un nombre.';return}
+  if(pin&&!/^\d{4}$/.test(pin)){$('#pm').textContent='El PIN debe tener exactamente 4 números.';return}
+  Object.assign(d,{name:n,pin});if(nw)PROFILES.push(d);else Object.assign(p,d);saveP();closeOv();
+  if($('#prof').classList.contains('on'))renderProfiles();if(profile===p||profile===d)buildMenu()};
+ const dl=$('#pd');if(dl)dl.onclick=()=>{if(!dl._s){dl._s=1;dl.textContent='¿Seguro? Pulsa de nuevo';return}
+  ['list','hist'].forEach(k=>{try{localStorage.removeItem('nf:'+p.id+':'+k)}catch(e){}});PROFILES.splice(PROFILES.indexOf(p),1);saveP();closeOv();
+  if(profile===p){profile=PROFILES[0];manage=false;screen('prof')}renderProfiles();focusFirst($('#prof'))};
+ openOv()}
+function askPin(p,ok){let v='';
+ ov.innerHTML=`<div class="bx" style="text-align:center"><div style="width:5rem;margin:0 auto 1rem">${avatar(p)}</div><h2>PIN de ${esc(p.name)}</h2><div class="dots" id="pdt"><i></i><i></i><i></i><i></i></div><p class="msg" id="pm"></p>
+ <div class="kp">${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-f data-k="${n}">${n}</button>`).join('')}<button data-f data-k="b">Borrar</button><button data-f data-k="0">0</button><button data-f data-k="x">Cancelar</button></div></div>`;
+ const dots=()=>$$('#pdt i').forEach((d,n)=>d.classList.toggle('f',n<v.length));
+ const press=k=>{if(k==='x')return closeOv();if(k==='b')v=v.slice(0,-1);else if(v.length<4)v+=k;dots();
+  if(v.length===4){if(v===p.pin){closeOv();ok()}else{const b=ov.querySelector('.bx');b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');$('#pm').textContent='PIN incorrecto.';v='';setTimeout(dots,200)}}};
+ ov._press=press;ov.onclick=e=>{const k=e.target.closest('[data-k]');if(k)press(k.dataset.k)};openOv();
+ const f=ov.querySelector('[data-k="5"]');if(f)f.focus({preventScroll:true})}
+function go(v,q){hidePop();view=v;if(v!=='search')prevView=v;$$('.nl').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+ const m=$('#main');m.innerHTML='';window.scrollTo(0,0);
+ if(v==='search'){m.append(el('<div style="height:calc(var(--nav) + 1.5rem)"></div>'));gridOf(m,ITEMS.filter(i=>(i.title+' '+i.genres.join(' ')).toLowerCase().includes(q.toLowerCase())),`Sin resultados para "${q}"`);return}
+ if(v==='hist'){m.append(el('<div class="ph" style="display:flex;align-items:center;gap:2rem;flex-wrap:wrap">Historial<button class="bt" data-f id="hc">Borrar historial</button></div>'));
+  const list=H();if(!list.length){m.append(el('<p class="empty" style="padding-top:1rem">Todavía no viste nada. Lo que reproduzcas aparecerá aquí.</p>'));$('#hc').remove();return}
+  const w=el('<div class="hl"></div>');
+  list.forEach(h=>{const i=byId(h.id),se=i.seasons&&h.s!=null?i.seasons.find(x=>x.n===h.s):null;
+   const sub=[i.type==='serie'?'Serie':'Película',se?(h.e?`T${se.n} E${h.e}`:se.label):'',ago(h.at)].filter(Boolean).join(' · ');
+   const r=el(`<div class="he"><div class="hth"></div><div class="hf"><b>${i.title}</b><span>${sub}</span></div><button class="bt p" data-f data-a="r">Volver a ver</button><button class="bt" data-f data-a="d">Quitar</button></div>`);
+   r.querySelector('.hth').append(art(i));
+   r.onclick=e=>{const k=e.target.closest('[data-a]');if(!k)return;if(k.dataset.a==='d'){store.s('hist',H().filter(x=>x.id!==i.id));go('hist');focusFirst($('#app'))}else if(se)playSeason(i,se,h.e||undefined);else play(i)};w.append(r)});
+  m.append(w);$('#hc').onclick=()=>{store.s('hist',[]);go('hist')};return}
+ if(v==='all'){m.append(el(`<div class="ph">${q.t}</div>`));gridOf(m,q.l,'');return}
+ if(v==='kids'){m.append(el('<div class="ph">Niños</div>'));gridOf(m,ITEMS.filter(i=>i.genres.includes('Familia')||i.genres.includes('Animación')),'Sin títulos.');return}
+ if(v==='lista'){m.append(el('<div class="ph">Mi lista</div>'));gridOf(m,store.g('list',[]).map(byId).filter(Boolean),'Todavía no agregaste títulos. Usa el botón + en cualquier título.');return}
+ if(v==='lego'){
+   const legoItems=ITEMS.filter(i=>i.lego).sort((a,b)=>b.year-a.year);
+   m.append(el(`<div class="ph" style="font-family:'Bebas Neue',Impact,sans-serif;color:#e50914;letter-spacing:.05em;font-size:3rem">LEGO</div>`));
+   const wrap=el('<div class="rows"></div>');
+   if(legoItems.length){wrap.append(row('Películas y series LEGO — ordenadas por año',legoItems))}
+   else{wrap.append(el('<p class="empty" style="padding-top:2rem">Aún no hay títulos LEGO. Pronto agregaremos más.</p>'))}
+   m.append(wrap);m.append(foot());return;
+ }
+ if(v==='home'||v==='serie')hero(m);else m.append(el(`<div class="ph">${{pelicula:'Películas',nuevo:'Novedades populares'}[v]||'Series'}</div>`));
+ 
+ const rows=el('<div class="rows"></div>'),hist=store.g('hist',[]).map(byId).filter(Boolean),T=t=>ITEMS.filter(i=>i.type===t),G=g=>ITEMS.filter(i=>i.genres.includes(g)),L=()=>ITEMS.filter(i=>i.lego).sort((a,b)=>b.year-a.year);
+ const JP=()=>ITEMS.filter(i=>i.genres.includes('Jurassic')).sort((a,b)=>a.year-b.year);
+ const Fantasia=()=>ITEMS.filter(i=>i.genres.includes('Fantasía')).sort((a,b)=>a.year-b.year);
+ const Animadas=()=>ITEMS.filter(i=>i.genres.includes('Series Animadas')).sort((a,b)=>a.year-b.year);
+ const Docus=()=>ITEMS.filter(i=>i.type==='documental');
+ const sortedByImdb=[...ITEMS].filter(i=>i.imdb).sort((a,b)=>b.imdb-a.imdb).slice(0,10);
+ const R=v==='home'?[
+   ['Top 10 hoy',sortedByImdb,1],
+   ['Series animadas clásicas',Animadas()],
+   ['Documentales',Docus()],
+   ['La Saga Jurassic',JP()],
+   ['Fantasía y Magia',Fantasia()],
+   ['LEGO',L()],
+   ['Películas agregadas recientemente',T('pelicula')],
+   ['Para ver en familia',G('Familia')],
+   ['Comedias',G('Comedia')],
+   ['Series',T('serie')],
+   ['Solo para adultos',G('Adultos')], 
+   ['Anime', G('Anime')], // <-- NUEVA FILA ANIME
+   ['Mi lista',store.g('list',[]).map(byId).filter(Boolean)]
+  ]
+  :v==='nuevo'?[['Los 10 títulos más vistos hoy',sortedByImdb,1],['Estrenos 2026',ITEMS.filter(i=>i.year>=2026)],['Agregados recientemente',ITEMS]]
+  :v==='serie'?[['Series populares',T('serie')],['Series animadas clásicas',Animadas()],['Misterio y suspenso',G('Misterio')]]
+  :[['Agregadas recientemente',T('pelicula')],['Para ver en familia',G('Familia')],['Animación',G('Animación')],['Comedias',G('Comedia')]];
+ R.forEach(([t,l,top,prog])=>{if(l.length)rows.append(row(t,l,top,prog))});m.append(rows);m.append(foot())}
+function hero(m){
+  const items=HERO_IDS.map(byId).filter(Boolean);
+  if(!items.length)return;
+  let idx=0,timer;
+  const h=el(`<section class="hero"><div class="hero-slides"></div><div class="hi"></div><div class="hero-dots"></div><div class="hr"><button class="mu" data-f id="mu">${I.mute}</button><span id="hr-rate"></span></div></section>`);
+  const slides=h.querySelector('.hero-slides'),dots=h.querySelector('.hero-dots');
+  const mu=h.querySelector('#mu');let muted=true;
+  mu.onclick=function(){muted=!muted;this.innerHTML=muted?I.mute:I.vol};
+  items.forEach((i,n)=>{
+    const s=el(`<div class="hero-slide${n===0?' on':''}"></div>`);s.append(img(i.backdrop||i.poster,i.title,true));slides.append(s);
+    const d=el(`<button class="hd2${n===0?' on':''}" aria-label="${i.title}"></button>`);d.onclick=()=>{idx=n;render();resetTimer()};dots.append(d);
+  });
+  function render(){
+    slides.querySelectorAll('.hero-slide').forEach((s,k)=>s.classList.toggle('on',k===idx));
+    dots.querySelectorAll('.hd2').forEach((d,k)=>d.classList.toggle('on',k===idx));
+    const i=items[idx],hi=h.querySelector('.hi'),isSerie=i.type==='serie';
+    hi.innerHTML=`<div class="tag"><b>N</b>${isSerie?'SERIE':'PELÍCULA'}</div><h1 class="ht">${i.title}</h1><div class="rk"><span class="t10">TOP<br>10</span>N.º 1 en ${isSerie?'series':'películas'} hoy</div><p class="hd">${i.description}</p><div class="hb"><button class="b w" data-f id="hp">${I.play}Reproducir</button><button class="b g" data-f id="hi">${I.info}Más información</button></div>`;
+    hi.querySelector('#hp').onclick=()=>play(i);hi.querySelector('#hi').onclick=()=>openMd(i);h.querySelector('#hr-rate').textContent=i.rating;
+  }
+  function resetTimer(){clearInterval(timer);timer=setInterval(()=>{idx=(idx+1)%items.length;render()},8000)}
+  render();resetTimer();
+  h.addEventListener('mouseenter',()=>clearInterval(timer));h.addEventListener('mouseleave',resetTimer);
+  h.addEventListener('focusin',()=>clearInterval(timer));h.addEventListener('focusout',e=>{if(!h.contains(e.relatedTarget))resetTimer()});
+  m.append(h);
+}
+function gridOf(m,l,msg){if(!l.length){m.append(el(`<p class="empty" style="padding-top:2rem">${msg}</p>`));return}const g=el('<div class="grid"></div>');l.forEach(i=>g.append(tile(i)));m.append(g)}
+function row(t,l,top,prog){const r=el(`<div class="row"><h2 class="rt">${t}<span class="ex">Explorar todo${I.r}</span></h2><div class="sl"><button class="ar l" tabindex="-1">${I.l}</button><div class="tr"></div><button class="ar r" tabindex="-1">${I.r}</button></div></div>`),tr=r.querySelector('.tr');
+ l.forEach((i,n)=>tr.append(tile(i,top&&n+1,prog)));const s=d=>tr.scrollBy({left:d*tr.clientWidth*.9});r.querySelector('.l').onclick=()=>s(-1);r.querySelector('.r').onclick=()=>s(1);r.querySelector('.ex').onclick=()=>go('all',{t,l});return r}
+function tile(i,rank,prog){const t=el(`<div class="tile${rank?' top':''}" data-f tabindex="0" role="button" aria-label="${i.title}"></div>`);t._i=i;
+ if(rank)t.append(el(`<svg class="num" viewBox="0 0 100 150" preserveAspectRatio="xMaxYMid meet"><text x="96" y="132" text-anchor="end" font-size="${rank>9?110:175}">${rank}</text></svg>`));
+ const a=art(i);if(prog)a.append(el(`<span class="prg"><i style="width:${(i.id.charCodeAt(0)*7+i.id.length*13)%70+15}%"></i></span>`));else{a.append(el('<span class="nb">N</span>'));if(i.year>=2026)a.append(el('<span class="nw">Recién agregado</span>'))}t.append(a);t.onclick=()=>openMd(i);t.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openMd(i)}};
+ t.onmouseenter=()=>{if(matchMedia('(hover:hover)').matches)sched(t,350)};t.onmouseleave=()=>{clearTimeout(pt);ht=setTimeout(hidePop,120)};
+ t.onfocus=()=>{if(lastIn==='key')sched(t,550)};t.onblur=()=>{clearTimeout(pt)};return t}
+const pop=$('#pop');let pt,ht,popI;
+const acts=(i)=>`<div class="ac"><button class="cb w" data-a="play" title="Reproducir">${I.play}</button><button class="cb" data-a="list" title="Mi lista">${inList(i)?I.check:I.plus}</button><button class="cb" data-a="like" title="Me gusta">${I.like}</button><button class="cb sp" data-a="more" title="Más información">${I.down}</button></div>`;
+function meta(i){return `<div class="mt"><span class="mc">${i.match}% para ti</span><span class="ag">${i.rating}</span><i class="bar-load"></i><span>${i.duration}</span></div><div class="gn">${i.genres.map(g=>`<span>${g}</span>`).join('<i>•</i>')}</div>`}
+function sched(t,d){clearTimeout(pt);clearTimeout(ht);pt=setTimeout(()=>showPop(t),d)}
+function showPop(t){const i=t._i,r=t.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight||$('#md').classList.contains('on'))return;
+ popI=i;pop.classList.remove('show');pop.innerHTML='';const a=art(i);pop.append(a);const b=el(`<div class="pb">${acts(i)}${meta(i)}</div>`);pop.append(b);
+ b.onclick=e=>{const k=e.target.closest('[data-a]');if(!k)return;const x=k.dataset.a;if(x==='play')play(i);if(x==='more')openMd(i);if(x==='like')k.classList.toggle('w');if(x==='list'){toggleList(i);k.innerHTML=inList(i)?I.check:I.plus;if(view==='lista')go('lista')}};
+ const rem=parseFloat(getComputedStyle(document.documentElement).fontSize),w=Math.max(r.width*1.4,15*rem);pop.style.width=w+'px';pop.style.left='0';pop.style.top='0';
+ const h=pop.offsetHeight;let L=Math.max(8,Math.min(innerWidth-w-8,r.left+r.width/2-w/2)),T=Math.max(8,Math.min(innerHeight-h-8,r.top+r.height/2-h/2));
+ pop.style.left=L+'px';pop.style.top=T+'px';pop.style.transformOrigin=`${r.left+r.width/2-L}px ${r.top+r.height/2-T}px`;requestAnimationFrame(()=>pop.classList.add('show'))}
+function hidePop(){clearTimeout(pt);pop.classList.remove('show')}
+pop.onmouseenter=()=>clearTimeout(ht);pop.onmouseleave=()=>{ht=setTimeout(hidePop,100)};
+addEventListener('scroll',()=>{$('#nav').classList.toggle('solid',scrollY>10);if(pop.classList.contains('show')||pt){hidePop();const a=document.activeElement;if(lastIn==='key'&&a&&a._i)sched(a,450)}},{passive:true});
+const md=$('#md');
+function openMd(i){hidePop();if(!md.classList.contains('on'))lastFocus=document.activeElement;
+ md.innerHTML=`<div class="sh"><button class="sc" data-f id="mx">${I.x}</button><div class="sv"></div><div class="sb2"><div><div class="mt"><span class="mc">${i.match}% para ti</span><span>${i.year}</span><span>${i.duration}</span><span class="ag">${i.rating}</span><i class="bar-load"></i></div><p>${i.description}</p></div>
+ <div><small>Géneros: <span>${i.genres.join(', ')}</span></small><small>Tipo: <span>${i.type==='serie'?'Serie':'Película'}</span></small></div></div><div class="xt"></div></div>`;
+ const sv=md.querySelector('.sv');extras(i,md.querySelector('.xt'));
+ if(i.backdrop){sv.append(Object.assign(img(i.backdrop,i.title,1),{className:'bd'}))}else{const b=img(i.poster,'',1);b.className='bg';const p=img(i.poster,i.title,1);p.className='pst';sv.append(b,p)}
+ const x=el(`<div class="sx"><h2 class="ht">${i.title}</h2><div class="ac" style="gap:.6rem"><button class="b w" data-f data-a="play">${I.play}Reproducir</button><button class="cb" data-f data-a="list">${inList(i)?I.check:I.plus}</button><button class="cb" data-f data-a="like">${I.like}</button></div></div>`);
+ sv.append(x);x.onclick=e=>{const k=e.target.closest('[data-a]');if(!k)return;if(k.dataset.a==='play')play(i);if(k.dataset.a==='like')k.classList.toggle('w');if(k.dataset.a==='list'){toggleList(i);k.innerHTML=inList(i)?I.check:I.plus}};
+ md.classList.add('on');document.body.classList.add('lock');md.scrollTop=0;$('#mx').onclick=closeMd;md.onclick=e=>{if(e.target===md)closeMd()};x.querySelector('.b').focus({preventScroll:true})}
+function closeMd(){md.classList.remove('on');document.body.classList.remove('lock');if(view==='lista')go('lista');else if(view==='home')refreshHist();if(lastFocus&&document.contains(lastFocus))lastFocus.focus({preventScroll:true})}
+function refreshHist(){}
+const pl=$('#play'),fr=$('#fr'),pbk=$('#pbk'),nextBtn=$('#nextBtn');let bt;
+function play(i){
+  if(i.seasons&&i.seasons.length){openMd(i);return}
+  if(!i.embedUrl){alert('El reproductor para este título aún no está disponible. Pronto lo agregaremos.');return}
+  rec(i);
+  hidePop();currentPlay=null;
+  pbk.innerHTML=I.back+`<span>${i.title}</span>`;fr.src=i.embedUrl;pl.classList.add('on');document.body.classList.add('lock');pbk.classList.remove('hide');pbk.focus();bar();nextBtn.classList.remove('show');showInfo(i);
+  try{(pl.requestFullscreen||pl.webkitRequestFullscreen).call(pl)}catch(e){}
+}
+function playSeason(item,season,episodeN){
+  let url,ep=episodeN;
+  if(season.mode==='full'){url=season.embedUrl;ep=null}
+  else{ep=episodeN||1;url=season.episodes[ep-1].url}
+  currentPlay={item,season,episodeN:ep};
+  rec(item,season.n,ep);
+  hidePop();
+  const title=ep?`${item.title} - T${season.n} E${ep}`:`${item.title} - ${season.label}`;
+  pbk.innerHTML=I.back+`<span>${title}</span>`;
+  fr.src=url;pl.classList.add('on');document.body.classList.add('lock');pbk.classList.remove('hide');pbk.focus();bar();
+  updateNextBtn();showInfo(item);
+  if(md.classList.contains('on'))closeMd();
+  try{(pl.requestFullscreen||pl.webkitRequestFullscreen).call(pl)}catch(e){}
+}
+function getNextEpisode(){
+  if(!currentPlay||!currentPlay.season)return null;
+  const {item,season,episodeN}=currentPlay;
+  if(!episodeN||!season.episodes)return null;
+  if(episodeN<season.episodes.length)return {season,episodeN:episodeN+1};
+  const next=item.seasons.find(s=>s.n===season.n+1);
+  if(next&&next.mode==='episodes')return {season:next,episodeN:1};
+  return null;
+}
+function updateNextBtn(){
+  const next=getNextEpisode();
+  if(next){
+    nextBtn.querySelector('span').textContent=`T${next.season.n} E${next.episodeN}`;
+    nextBtn.classList.add('show');
+    clearTimeout(nextBtn._t);
+    nextBtn._t=setTimeout(()=>nextBtn.classList.remove('show'),3500);
+  }else{
+    nextBtn.classList.remove('show');
+  }
+}
+function bar(){pbk.classList.remove('hide');clearTimeout(bt);bt=setTimeout(()=>pbk.classList.add('hide'),3500);if(currentPlay&&currentPlay.season&&currentPlay.season.episodes){updateNextBtn()}}
+nextBtn.onclick=()=>{const next=getNextEpisode();if(next)playSeason(currentPlay.item,next.season,next.episodeN)};
+function closePlay(){fr.src='';pl.classList.remove('on');if(!md.classList.contains('on'))document.body.classList.remove('lock');if(document.fullscreenElement)document.exitFullscreen();currentPlay=null;nextBtn.classList.remove('show');$('#pinfo').classList.remove('show');act();if(view==='home')go('home');if(md.classList.contains('on'))md.querySelector('.b').focus()}
+pbk.onclick=closePlay;pl.addEventListener('mousemove',bar);
+$$('.nl').forEach(b=>b.onclick=()=>{closeSearch(1);go(b.dataset.v)});
+const sb=$('#sb'),q=$('#q'),hm=$('#hm'),bl=$('#bl');$('#sbt').innerHTML=I.search;
+$('#sbt').onclick=()=>{sb.classList.add('open');q.focus()};
+q.oninput=()=>{const v=q.value.trim();v?go('search',v):go(prevView)};
+q.onblur=()=>{if(!q.value)sb.classList.remove('open')};
+function closeSearch(clear){if(clear){q.value='';sb.classList.remove('open')}}
+function closeMenu(){hm.classList.remove('open');bl.classList.remove('open')}
+hm.onmouseenter=()=>hm.classList.add('open');hm.onmouseleave=closeMenu;
+$('#hmt').onclick=()=>hm.classList.toggle('open');hm.addEventListener('focusout',e=>{if(!hm.contains(e.relatedTarget))closeMenu()});
+['mousemove','touchstart'].forEach(e=>addEventListener(e,()=>lastIn='mouse',{passive:true}));
+const BACK=[27,8,10009,461,4,166];
+function layer(){return idleOn||pl.classList.contains('on')?null:ov.classList.contains('on')?ov:md.classList.contains('on')?md:$('#prof').classList.contains('on')?$('#prof'):$('#app').classList.contains('on')?$('#app'):null}
+function focusables(root){return [...root.querySelectorAll('[data-f]')].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0})}
+function focusFirst(root){setTimeout(()=>{const f=focusables(root).find(e=>!e.classList.contains('nl'))||focusables(root)[0];f&&f.focus({preventScroll:true})},80)}
+function reveal(e){const r=e.getBoundingClientRect(),tr=e.closest('.tr');
+ if(e.closest('.hero'))scrollTo({top:0,behavior:'smooth'});
+ else if(!e.closest('.nav')&&!e.closest('.md')&&(r.top<innerHeight*.12||r.bottom>innerHeight*.92))scrollBy({top:r.top+r.height/2-innerHeight/2,behavior:'smooth'});
+ if(tr){const t=tr.getBoundingClientRect(),p=innerWidth*.04;if(r.left<t.left+p)tr.scrollBy({left:r.left-t.left-p});else if(r.right>t.right-p)tr.scrollBy({left:r.right-t.right+p})}
+ if(e.closest('.md'))e.scrollIntoView({block:'nearest',behavior:'smooth'})}
+function move(dir){const root=layer();if(!root)return;const cur=document.activeElement,list=focusables(root).filter(e=>e!==cur);
+ if(!cur||!cur.matches||!cur.matches('[data-f]')){focusFirst(root);return}
+ const c=cur.getBoundingClientRect(),cx=c.left+c.width/2,cy=c.top+c.height/2;let best=null,bs=1e9;
+ list.forEach(e=>{const r=e.getBoundingClientRect(),x=r.left+r.width/2-cx,y=r.top+r.height/2-cy;
+  const [p,s]=dir==='L'?[-x,Math.abs(y)]:dir==='R'?[x,Math.abs(y)]:dir==='U'?[-y,Math.abs(x)]:[y,Math.abs(x)];
+  if(p<=2)return;const sc=p+s*(dir==='L'||dir==='R'?4:2);if(sc<bs){bs=sc;best=e}});
+ if(best){hidePop();best.focus({preventScroll:true});reveal(best)}}
+addEventListener('keydown',e=>{
+ if(pl.classList.contains('on')){bar();if(BACK.includes(e.keyCode)&&e.keyCode!==27||e.key==='Escape'){e.preventDefault();closePlay()}return}
+ if(ov.classList.contains('on')&&ov._press){if(/^\d$/.test(e.key)){e.preventDefault();ov._press(e.key);return}if(e.key==='Backspace'){e.preventDefault();ov._press('b');return}}
+ const typing=document.activeElement&&document.activeElement.tagName==='INPUT';
+ if(BACK.includes(e.keyCode)||e.key==='Escape'){if(typing&&e.keyCode===8)return;
+  if(ov.classList.contains('on')){e.preventDefault();closeOv()}else if(md.classList.contains('on')){e.preventDefault();closeMd()}else if(hm.classList.contains('open')||bl.classList.contains('open')){closeMenu()}else if($('#app').classList.contains('on')){if(q.value||sb.classList.contains('open')){closeSearch(1);go(prevView)}else if(view!=='home')go('home')}return}
+ const d={ArrowLeft:'L',ArrowRight:'R',ArrowUp:'U',ArrowDown:'D'}[e.key];if(!d)return;
+ if(typing&&(d==='L'||d==='R'))return;e.preventDefault();lastIn='key';hidePop();move(d)});
+logo($('#load .lw'));logo($('#prof .lw'));logo($('.nav .lw'));
+$('#bm').onclick=()=>{manage=!manage;renderProfiles();focusFirst($('#prof'))};
+$('#blt').innerHTML=I.bell;$('#nt').innerHTML=ITEMS.map((i,n)=>`<button data-f data-n="${i.id}"><img class="nth" src="${(i.backdrop||i.poster)[0]}" referrerpolicy="no-referrer" alt="" onerror="this.style.visibility='hidden'"><span>Novedad<br><b>${i.title}</b><br><small>hace ${n+1} día${n?'s':''}</small></span></button>`).join('');
+$$('#nt [data-n]').forEach(b=>b.onclick=()=>{closeMenu();openMd(byId(b.dataset.n))});
+bl.onmouseenter=()=>bl.classList.add('open');bl.onmouseleave=()=>bl.classList.remove('open');$('#blt').onclick=()=>bl.classList.toggle('open');bl.addEventListener('focusout',e=>{if(!bl.contains(e.relatedTarget))bl.classList.remove('open')});
+
+/* ---- MODO REPOSO: banners en bucle tras minutos sin tocar nada en Inicio ---- */
+const IDLE=[
+{id:'smallville',img:'https://cdn.sanity.io/images/yssomye2/production/dd8c854735d2e6911ff9f466ff79597eb3fe7b40-1080x607.png?auto=format&fit=max&w=3840&q=85&compress=true&progressive=true'},
+{id:'ben10',img:'https://http2.mlstatic.com/D_NQ_NP_798564-MLB28972236549_122018-O.webp'},
+{id:'simpsons',img:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRdSEJ9lF23jqr89AUFfuzRf2kWtJBywQs8byu6p5dBeg&s=10'},
+{id:'chavo',img:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlOMZJIz_KwxjshsqLXDtOwIfo3g0uFMxDhiR3lJPOFA&s=10'},
+{id:'legoMarvel',img:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSOA8ELXevstGdLgSOlKtzZAh6yVXCOiipXXNl4LeAbQNN_4vFuuOnvp4&s=10'},
+{id:'jp1',img:'https://www.nbcstore.com/cdn/shop/files/jurrasic-park-mobile-min.jpg?v=1689008817'},
+{id:'merlina',img:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQGLxmMCJ1WZ14D2F_fu7rU0v_IsYcxESo20IYJmI2Wvg&s=10'},
+{id:'clarence',img:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTt5AQ41RNzIUNU8pXZCqcool7NpT0wk8vJlvHSG2wkzxb387gUvaPF2eb4&s=10'}];
+const idle=$('#idle');let last=Date.now(),idleOn=false,idleT,idleN=0,idleList=[],idleCur=null;
+function act(){last=Date.now()}
+['mousemove','keydown','mousedown','touchstart','wheel','scroll'].forEach(e=>addEventListener(e,()=>{if(!idleOn)act()},{passive:true,capture:true}));
+function canIdle(){return $('#app').classList.contains('on')&&view==='home'&&!md.classList.contains('on')&&!pl.classList.contains('on')&&!ov.classList.contains('on')&&!q.value}
+function loadOk(d){return new Promise(r=>{const m=new Image();m.referrerPolicy='no-referrer';m.onload=()=>r(d);m.onerror=()=>r(null);m.src=d.img;setTimeout(()=>r(null),8000)})}
+let starting=false;
+async function startIdle(){if(starting)return;starting=true;const ok=(await Promise.all(IDLE.filter(d=>byId(d.id)).map(loadOk))).filter(Boolean);starting=false;
+ if(!ok.length||!canIdle())return;idleList=ok;idleN=0;idleOn=true;hidePop();idle.innerHTML='<div class="hint">Pulsa cualquier tecla para salir</div>';idle.classList.add('on');idleShow();idleT=setInterval(()=>{idleN=(idleN+1)%idleList.length;idleShow()},7000)}
+function idleShow(){const d=idleList[idleN],i=byId(d.id);idleCur=i;
+ const s=el(`<div class="is"><img class="bgb" src="${d.img}" alt="" referrerpolicy="no-referrer"><img class="fgb" src="${d.img}" alt="${i.title}" referrerpolicy="no-referrer"><div class="info"><div class="tag"><b>N</b>${i.type==='serie'?'SERIE':'PELÍCULA'}</div><h1 class="ht">${i.title}</h1><div class="rb">${i.rating}</div>
+ <div class="mt"><span class="mc">${i.match}% para ti</span><span>${i.year}</span><span>${i.duration}</span></div><div class="gn">${i.genres.slice(0,4).map(g=>`<span>${g}</span>`).join('<i>•</i>')}</div><p class="hd">${i.description}</p>
+ <div class="hb"><button class="b w vn">${I.play}Ver ahora</button></div></div></div>`);
+ idle.append(s);requestAnimationFrame(()=>requestAnimationFrame(()=>s.classList.add('on')));
+ idle.querySelectorAll('.is').forEach(o=>{if(o!==s){o.classList.remove('on');setTimeout(()=>o.remove(),1300)}})}
+function stopIdle(go2){clearInterval(idleT);idleOn=false;idle.classList.remove('on');setTimeout(()=>{if(!idleOn)idle.innerHTML=''},1300);act();if(go2)play(idleCur)}
+idle.onclick=e=>stopIdle(!!e.target.closest('.vn'));
+addEventListener('keydown',e=>{if(!idleOn)return;e.preventDefault();e.stopImmediatePropagation();stopIdle(e.key==='Enter')},true);
+setInterval(()=>{if(idleOn||!canIdle())return;const m=profile.idle===undefined?2:profile.idle;if(m&&Date.now()-last>=m*60000)startIdle()},4000);
+renderProfiles();
+setTimeout(()=>{screen('prof');focusFirst($('#prof'))},2500);
+</script>
+</body>
+</html>
